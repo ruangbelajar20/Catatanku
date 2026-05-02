@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyFinanceFlow - Dashboard</title>
-    <!-- Tailwind CSS (Framework Desain Super Ringan & Tangguh) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vue 3 (Framework Logika Interaktif) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Chart.js (Library Visualisasi Data Ringan) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,13 +16,11 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
         
-        /* Animasi Kinerja Tinggi (GPU Accelerated) */
         .animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes customPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .9; transform: scale(1.02); box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); } }
         .animate-danger-pulse { animation: customPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         
-        /* Vue Route Transitions yang Lebih Snappy */
         .page-enter-active, .page-leave-active { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         .page-enter-from { opacity: 0; transform: translateY(15px); }
         .page-leave-to { opacity: 0; transform: translateY(-15px); }
@@ -39,7 +34,6 @@
 
 <div id="app" v-cloak class="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6">
     
-    <!-- NOTIFIKASI MENGAMBANG -->
     <transition name="toast">
         <div v-if="notif.show" 
              class="fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm flex items-center gap-3 backdrop-blur-md"
@@ -50,7 +44,6 @@
         </div>
     </transition>
 
-    <!-- NAVIGATION BAR -->
     <nav class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col xl:flex-row justify-between items-center gap-4 transition-all duration-300 hover:shadow-md mb-6">
         <div class="flex justify-between items-center w-full xl:w-auto gap-4">
             <h1 class="text-2xl font-extrabold text-blue-600 tracking-tight cursor-pointer hover:scale-105 transition-transform duration-300">MyFinanceFlow</h1>
@@ -75,7 +68,6 @@
         </div>
     </nav>
 
-    <!-- FILTER WAKTU GLOBAL -->
     <div class="flex justify-center md:justify-end mb-6">
         <div class="inline-flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto w-full md:w-auto transition-all duration-300 hover:shadow-md">
             <button v-for="p in periods" :key="p.val" @click="setFilter(p.val)"
@@ -86,12 +78,9 @@
         </div>
     </div>
 
-    <!-- WRAPPER TRANSISI HALAMAN UTAMA -->
     <transition name="page" mode="out-in">
         
-        <!-- ========================================== -->
-        <!-- HALAMAN 1: DASHBOARD UTAMA                 -->
-        <!-- ========================================== -->
+        <!-- DASHBOARD UTAMA -->
         <div v-if="activeTab === 'dashboard'" key="dashboard" class="space-y-6">
             <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200 gap-4">
                 <div><p class="text-sm text-slate-500 font-medium">Ringkasan Arus Kas Sesuai Filter</p></div>
@@ -125,10 +114,18 @@
                                     <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Waktu Transaksi</label>
                                     <input type="datetime-local" v-model="form.tanggal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
                                 </div>
+                                
+                                <!-- PILIHAN KATEGORI DINAMIS ADA DI SINI -->
                                 <div v-if="form.jenis !== 'Tabungan'">
                                     <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Kategori</label>
-                                    <input type="text" v-model="form.kategori" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
+                                    <select v-model="kategoriDropdown" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white mb-2">
+                                        <option v-for="opt in listKategoriAktif" :key="opt" :value="opt">{{ opt }}</option>
+                                    </select>
+                                    
+                                    <!-- Muncul Input Manual Khusus Jika Pilih Lainnya -->
+                                    <input v-if="kategoriDropdown === 'Lainnya'" type="text" v-model="form.kategori" required placeholder="Ketik kategori manual..." class="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white animate-fade-in">
                                 </div>
+                                
                                 <div v-if="form.jenis !== 'Tabungan'">
                                     <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Metode</label>
                                     <select v-model="form.metodePembayaran" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
@@ -186,9 +183,7 @@
             </main>
         </div>
 
-        <!-- ========================================== -->
-        <!-- HALAMAN 2: MANAJEMEN CICILAN               -->
-        <!-- ========================================== -->
+        <!-- MANAJEMEN CICILAN -->
         <div v-else-if="activeTab === 'cicilan'" key="cicilan" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
@@ -209,9 +204,7 @@
                     <p class="text-xs text-slate-500 mt-1">Sisa bayar: <span class="font-bold text-rose-500">Rp {{ formatRupiah(hutangSpaylaterSisa) }}</span></p>
                 </div>
             </div>
-            
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                <!-- SIMULASI BATAS AMAN -->
                 <div class="xl:col-span-4 space-y-4">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                         <div class="flex justify-between items-start mb-6">
@@ -227,8 +220,7 @@
                         </div>
                     </div>
                     <div v-if="sisaKuotaKredit < 0" class="animate-danger-pulse bg-rose-100 border-2 border-rose-500 text-rose-700 p-4 rounded-3xl flex items-center gap-3 shadow-lg shadow-rose-200">
-                        <span class="text-3xl">⚠️</span>
-                        <div><h4 class="font-extrabold text-sm uppercase">Peringatan Kritis!</h4><p class="text-xs font-medium">Anda mengambil cicilan melebihi batas aman.</p></div>
+                        <span class="text-3xl">⚠️</span><div><h4 class="font-extrabold text-sm uppercase">Peringatan Kritis!</h4><p class="text-xs font-medium">Anda mengambil cicilan melebihi batas aman.</p></div>
                     </div>
                 </div>
                 <div class="xl:col-span-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8 hover:shadow-md transition-shadow">
@@ -255,25 +247,21 @@
                                 <td class="px-6 py-4 text-right font-extrabold text-rose-600">Rp {{ formatRupiah(item.nominal - item.terbayar) }}</td>
                                 <td class="px-6 py-4 text-center">
                                     <button v-if="item.status === 'Belum Lunas'" @click="bukaModalBayar(item)" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-0.5 text-white rounded-lg text-xs font-bold transition-all shadow-md">💰 Bayar</button>
-                                    <span v-else class="text-xs text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg font-bold">LUNAS ✅</span>
+                                    <span v-else class="text-xs text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg font-bold shadow-sm">LUNAS ✅</span>
                                 </td>
                             </tr>
-                            <tr v-if="listCicilan.length === 0"><td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">Bagus! Tidak ada riwayat hutang cicilan.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- HALAMAN 3: TABUNGAN                        -->
-        <!-- ========================================== -->
+        <!-- TABUNGAN -->
         <div v-else-if="activeTab === 'tabungan'" key="tabungan" class="space-y-6">
             <div class="bg-emerald-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden hover:shadow-emerald-500/30 hover:-translate-y-1 transition-all duration-300">
                 <div class="absolute right-[-20px] bottom-[-40px] opacity-20"><svg class="w-64 h-64 animate-[spin_60s_linear_infinite]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10.011 10.011 0 0012 2zm0 18a8 8 0 118-8 8.009 8.009 0 01-8 8z"/><path d="M12 6a.75.75 0 00-.75.75v1.5a2.251 2.251 0 00-1.5 2.125c0 1.25 1.008 2.25 2.25 2.25h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 0012 14.875v1.375a.75.75 0 001.5 0v-1.375a2.251 2.251 0 001.5-2.125c0-1.25-1.008-2.25-2.25-2.25h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0012 8.375V7A.75.75 0 0012 6z"/></svg></div>
                 <p class="text-sm font-bold text-emerald-100 uppercase tracking-widest relative z-10">Total Tabungan Terkumpul</p>
                 <h3 class="text-4xl font-extrabold mt-2 relative z-10">Rp {{ formatRupiah(totalTabungan) }}</h3>
-                <p class="text-xs text-emerald-200 mt-2 relative z-10">Dari seluruh riwayat (Mengabaikan filter waktu)</p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <div class="xl:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
@@ -295,65 +283,36 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- HALAMAN 4: ANALISIS KESEHATAN KEUANGAN     -->
-        <!-- ========================================== -->
+        <!-- ANALISIS KESEHATAN KEUANGAN -->
         <div v-else-if="activeTab === 'analisis'" key="analisis" class="space-y-6">
-            
-            <!-- KARTU STATUS DINAMIS (Warna berubah sesuai statusAnalisis.bgClass) -->
             <div :class="statusAnalisis.bgClass" class="text-white p-8 rounded-3xl shadow-xl relative overflow-hidden transition-colors duration-700 hover:shadow-2xl hover:-translate-y-1">
                 <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4"><svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM9 11V7h2v4H9zm4 6V7h2v10h-2zm-8-4V7h2v6H5zm14 4h-2v-4h2v4z"/></svg></div>
                 <div class="relative z-10">
                     <p class="text-xs font-bold text-white/70 uppercase tracking-widest mb-1">Status Kesehatan Finansial</p>
-                    <h2 class="text-4xl font-extrabold flex items-center gap-3 drop-shadow-md">
-                        {{ statusAnalisis.statusKeseluruhan }}
-                    </h2>
-                    <!-- KETERANGAN ANALISIS FORMAL & TERPERINCI -->
+                    <h2 class="text-4xl font-extrabold flex items-center gap-3 drop-shadow-md">{{ statusAnalisis.statusKeseluruhan }}</h2>
                     <div class="mt-4 pt-4 border-t border-white/20">
-                        <p class="text-sm font-medium leading-relaxed opacity-95">
-                            {{ statusAnalisis.deskripsi }}
-                        </p>
+                        <p class="text-sm font-medium leading-relaxed opacity-95">{{ statusAnalisis.deskripsi }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- CHART ANALISIS BAR -->
                 <div class="xl:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                     <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-2 text-center">Komparasi Pilar Finansial</h3>
-                    <p class="text-[10px] text-slate-400 mb-6 text-center">Pendapatan vs Pengeluaran vs Hutang Aktif</p>
                     <div class="relative h-[250px] w-full"><canvas id="radarAnalysisChart"></canvas></div>
                 </div>
-
-                <!-- LAPORAN ADVISOR -->
                 <div class="xl:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6 hover:shadow-md transition-shadow">
                     <h3 class="text-lg font-extrabold text-slate-800 border-b border-slate-100 pb-3">Laporan Rekomendasi Eksekutif</h3>
-                    
-                    <div v-if="statusAnalisis.anjuran.length > 0" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
-                        <h4 class="text-sm font-bold text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-2">✅ Rekomendasi Strategis</h4>
-                        <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.anjuran" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> {{ item }}</li></ul>
-                    </div>
-                    <div v-if="statusAnalisis.peringatan.length > 0" class="bg-amber-50 border border-amber-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
-                        <h4 class="text-sm font-bold text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-2">⚠️ Peringatan Risiko</h4>
-                        <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.peringatan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-amber-500 mt-0.5">•</span> {{ item }}</li></ul>
-                    </div>
-                    <div v-if="statusAnalisis.larangan.length > 0" class="bg-rose-50 border border-rose-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
-                        <h4 class="text-sm font-bold text-rose-700 uppercase tracking-widest mb-3 flex items-center gap-2">🚫 Tindakan Terlarang</h4>
-                        <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.larangan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-rose-500 mt-0.5">•</span> {{ item }}</li></ul>
-                    </div>
-                    
-                    <div v-if="statusAnalisis.anjuran.length === 0 && statusAnalisis.peringatan.length === 0 && statusAnalisis.larangan.length === 0" class="text-center py-8">
-                        <p class="text-slate-500">Data finansial belum memadai untuk menghasilkan analisis pada periode ini.</p>
-                    </div>
+                    <div v-if="statusAnalisis.anjuran.length > 0" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5"><h4 class="text-sm font-bold text-emerald-700 uppercase tracking-widest mb-3">✅ Rekomendasi Strategis</h4><ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.anjuran" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> {{ item }}</li></ul></div>
+                    <div v-if="statusAnalisis.peringatan.length > 0" class="bg-amber-50 border border-amber-100 rounded-2xl p-5"><h4 class="text-sm font-bold text-amber-700 uppercase tracking-widest mb-3">⚠️ Peringatan Risiko</h4><ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.peringatan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-amber-500 mt-0.5">•</span> {{ item }}</li></ul></div>
+                    <div v-if="statusAnalisis.larangan.length > 0" class="bg-rose-50 border border-rose-100 rounded-2xl p-5"><h4 class="text-sm font-bold text-rose-700 uppercase tracking-widest mb-3">🚫 Tindakan Terlarang</h4><ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.larangan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-rose-500 mt-0.5">•</span> {{ item }}</li></ul></div>
                 </div>
             </div>
         </div>
 
     </transition>
 
-    <!-- ========================================== -->
-    <!-- MODALS (BAYAR & CRUD)                      -->
-    <!-- ========================================== -->
+    <!-- MODAL PEMBAYARAN PARSIAL -->
     <transition name="modal">
         <div v-if="modalBayar.isOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="modalBayar.isOpen = false"></div>
@@ -377,6 +336,7 @@
         </div>
     </transition>
 
+    <!-- MODAL DAFTAR RINCIAN (CRUD) -->
     <transition name="modal">
         <div v-if="modal.isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModal"></div>
@@ -389,7 +349,7 @@
                 </div>
                 <div class="overflow-y-auto flex-1 p-0">
                     <table class="w-full text-left text-sm min-w-[850px]">
-                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold sticky top-0 z-10">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold sticky top-0 z-10 shadow-sm">
                             <tr><th class="px-6 py-4">ID Transaksi</th><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">Metode</th><th class="px-6 py-4">Keterangan</th><th class="px-6 py-4 text-right">Nominal</th><th class="px-6 py-4 text-center">Aksi</th></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -425,10 +385,12 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
+        // ==========================================
+        // GANTI LINK DI BAWAH INI DENGAN MILIK ANDA
+        // ==========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbxn8tiMuUue4ghyMx-YZgo1iaPsuSAc8IAHuO9htx63Pwux04AX7a6yqV2BJOXP_q26qg/exec"; 
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; 
         
-        // Security Check
         onMounted(() => {
             if(!localStorage.getItem('ff_token')) { window.location.href = 'index.html'; } 
             else { fetchData(); }
@@ -436,12 +398,8 @@ createApp({
 
         const logout = () => { localStorage.removeItem('ff_token'); window.location.href = 'index.html'; };
 
-        // Notification System
         const notif = ref({ show: false, message: '', type: 'success' });
-        const showNotif = (msg, type = 'success') => {
-            notif.value = { show: true, message: msg, type: type };
-            setTimeout(() => { notif.value.show = false; }, 3500);
-        };
+        const showNotif = (msg, type = 'success') => { notif.value = { show: true, message: msg, type: type }; setTimeout(() => { notif.value.show = false; }, 3500); };
 
         const dataTransaksi = ref([]);
         const isLoading = ref(false);
@@ -453,8 +411,24 @@ createApp({
         const periods = [{ label: 'Hari Ini', val: '1' }, { label: '1 Bulan', val: '30' }, { label: '3 Bulan', val: '90' }, { label: '6 Bulan', val: '180' }, { label: '1 Tahun', val: '365' }];
 
         const isEditing = ref(false); const editId = ref(null); const oldDataRef = ref(null);
-        const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: 'Lainnya', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
         
+        // Pilihan Kategori Dinamis
+        const kategoriDropdown = ref('Makan');
+        const listKategoriAktif = computed(() => {
+            if (form.value.jenis === 'Pemasukan') return ['Pemasukan Utama', 'Pemasukan Sampingan', 'Lainnya'];
+            return ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Lainnya'];
+        });
+
+        const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
+        
+        // Memantau perubahan jenis transaksi agar dropdown reset
+        watch(() => form.value.jenis, (newVal) => {
+            if (!isEditing.value && newVal !== 'Tabungan') {
+                kategoriDropdown.value = newVal === 'Pemasukan' ? 'Pemasukan Utama' : 'Makan';
+                form.value.kategori = ''; 
+            }
+        });
+
         const modal = ref({ isOpen: false, type: '', title: '', jenis: '', data: [], total: 0 });
         const modalBayar = ref({ isOpen: false, data: null, nominalInput: '' });
 
@@ -464,7 +438,11 @@ createApp({
         let chartIncExp = null; let chartDist = null; let chartRadar = null;
         let chartStatusCicilan = null; let chartTrendCicilan = null; let chartTabunganIns = null;
 
-        const resetForm = () => { form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: 'Lainnya', keterangan: '', metodePembayaran: 'Cash', nominal: '' }; isEditing.value = false; editId.value = null; oldDataRef.value = null; };
+        const resetForm = () => { 
+            form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' }; 
+            kategoriDropdown.value = 'Makan';
+            isEditing.value = false; editId.value = null; oldDataRef.value = null; 
+        };
 
         // ================= COMPUTED PROPERTIES =================
         const filteredData = computed(() => {
@@ -494,7 +472,7 @@ createApp({
         const batasAmanKredit = computed(() => Number(simulasiGaji.value) * (Number(persentaseBatasAman.value)/100));
         const sisaKuotaKredit = computed(() => batasAmanKredit.value - totalHutangAktif.value);
 
-        // ================= ALGORITMA ROBO-ADVISOR (ANALISIS) =================
+        // ================= ALGORITMA ROBO-ADVISOR =================
         const statusAnalisis = computed(() => {
             const inc = totalPemasukanFilter.value || 0; const exp = totalPengeluaranFilter.value || 0; const debt = totalHutangAktif.value || 0;
             let anjuran = []; let peringatan = []; let larangan = []; 
@@ -527,10 +505,9 @@ createApp({
             return { statusKeseluruhan, anjuran, peringatan, larangan, deskripsi, bgClass };
         });
 
-        // ================= FUNGSI CRUD & API =================
+        // ================= FUNGSI CRUD =================
         const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
         const formatTanggalView = (isoString) => { if(!isoString) return '-'; return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(isoString)); };
-        
         const bukaDatabase = () => { window.open(SPREADSHEET_URL, '_blank'); };
 
         const fetchData = async () => { 
@@ -546,7 +523,19 @@ createApp({
 
         const simpanData = async () => {
             if(!form.value.nominal) return showNotif("Masukkan nominal!", 'error');
-            if(form.value.jenis === 'Tabungan') { form.value.kategori = 'Tabungan'; form.value.metodePembayaran = 'Cash'; }
+            
+            if(form.value.jenis === 'Tabungan') { 
+                form.value.kategori = 'Tabungan'; 
+                form.value.metodePembayaran = 'Cash'; 
+            } else {
+                // Masukkan nilai dari dropdown jika tidak pilih "Lainnya"
+                if (kategoriDropdown.value !== 'Lainnya') {
+                    form.value.kategori = kategoriDropdown.value;
+                } else if (!form.value.kategori) {
+                    return showNotif("Masukkan kategori manual!", 'error');
+                }
+            }
+
             isLoading.value = true;
             const payload = isEditing.value ? { action: 'update', id: editId.value, oldData: oldDataRef.value, data: form.value } : { action: 'create', data: form.value };
             try { 
@@ -566,7 +555,7 @@ createApp({
         
         const prosesBayar = async () => {
             const nominal = Number(modalBayar.value.nominalInput);
-            if(nominal <= 0) return showNotif("Nominal tidak boleh kosong!", "error");
+            if(nominal <= 0) return showNotif("Nominal tidak valid!", "error");
             isLoading.value = true;
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'pay', id: modalBayar.value.data.id, nominalBayar: nominal }) }); 
@@ -579,7 +568,25 @@ createApp({
         const setFilter = async (val) => { filterWaktu.value = val; await nextTick(); renderChartsForActiveTab(); };
         const changeTab = async (tabName) => { activeTab.value = tabName; setTimeout(() => { renderChartsForActiveTab(); }, 300); };
 
-        const siapkanEdit = (item) => { closeModal(); activeTab.value = 'dashboard'; isEditing.value = true; editId.value = item.id; oldDataRef.value = item; const d = new Date(item.tanggal); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); form.value = { tanggal: d.toISOString().slice(0, 16), jenis: item.jenis, kategori: item.kategori, nominal: item.nominal, keterangan: item.keterangan, metodePembayaran: item.metodePembayaran || 'Cash' }; setTimeout(() => { document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' }); }, 100); };
+        const siapkanEdit = (item) => { 
+            closeModal(); activeTab.value = 'dashboard'; isEditing.value = true; editId.value = item.id; oldDataRef.value = item; 
+            const d = new Date(item.tanggal); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); 
+            
+            form.value = { tanggal: d.toISOString().slice(0, 16), jenis: item.jenis, kategori: item.kategori, nominal: item.nominal, keterangan: item.keterangan, metodePembayaran: item.metodePembayaran || 'Cash' }; 
+            
+            // Set Dropdown Kategori
+            if (item.jenis !== 'Tabungan') {
+                const listOpsi = item.jenis === 'Pemasukan' ? ['Pemasukan Utama', 'Pemasukan Sampingan'] : ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air'];
+                if (listOpsi.includes(item.kategori)) {
+                    kategoriDropdown.value = item.kategori;
+                } else {
+                    kategoriDropdown.value = 'Lainnya';
+                }
+            }
+
+            setTimeout(() => { document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' }); }, 100); 
+        };
+
         const batalEdit = () => { resetForm(); };
         const hapusData = async (item) => { 
             if(!confirm(`Hapus permanen transaksi Rp ${formatRupiah(item.nominal)}?`)) return; 
@@ -652,7 +659,9 @@ createApp({
             }
         };
 
-        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, statusAnalisis, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase };
+        onMounted(() => { if(localStorage.getItem('ff_token')) fetchData(); });
+
+        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, statusAnalisis, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif };
     }
 }).mount('#app');
 </script>
