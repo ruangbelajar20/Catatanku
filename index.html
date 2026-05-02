@@ -31,12 +31,12 @@
         </div>
         <div class="flex gap-4">
             <div class="text-right">
-                <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Pemasukan</p>
+                <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Pemasukan Global</p>
                 <p class="text-xl md:text-2xl font-bold">Rp {{ formatRupiah(totalPemasukan) }}</p>
             </div>
             <div class="w-px bg-slate-200"></div>
             <div class="text-right">
-                <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Pengeluaran</p>
+                <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Pengeluaran Global</p>
                 <p class="text-xl md:text-2xl font-bold">Rp {{ formatRupiah(totalPengeluaran) }}</p>
             </div>
         </div>
@@ -128,11 +128,11 @@
                 </button>
             </div>
 
-            <!-- GRAFIK AREA (2 Kolom) -->
+            <!-- GRAFIK AREA -->
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h2 class="text-lg font-bold">Analisis Dashboard</h2>
-                    <select v-model="filterWaktu" @change="renderSemuaChart" class="text-xs font-bold px-4 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none cursor-pointer">
+                    <select v-model="filterWaktu" @change="renderSemuaChart" class="text-xs font-bold px-4 py-2 border border-slate-200 rounded-xl bg-slate-50 outline-none cursor-pointer text-blue-600">
                         <option value="30">30 Hari Terakhir</option>
                         <option value="90">3 Bulan Terakhir</option>
                         <option value="180">6 Bulan Terakhir</option>
@@ -156,22 +156,24 @@
             </div>
         </section>
 
-        <!-- SEKSI BARU: TOTAL PER KATEGORI (KIRI & KANAN) -->
+        <!-- SEKSI BARU: TOTAL PER KATEGORI & RASIO (KIRI - KANAN - BAWAH) -->
         <section class="xl:col-span-12 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <div class="flex items-center gap-3 mb-6">
-                <h2 class="text-xl font-bold text-slate-800">Total Per Kategori</h2>
-                <span class="text-[10px] font-semibold tracking-wider uppercase bg-slate-100 text-slate-500 px-3 py-1 rounded-lg">Klik item untuk lihat rincian</span>
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-xl font-bold text-slate-800">Total Per Kategori</h2>
+                    <span class="text-[10px] font-semibold tracking-wider uppercase bg-slate-100 text-slate-500 px-3 py-1 rounded-lg">Berdasarkan Filter</span>
+                </div>
+                <p class="text-xs text-slate-400 font-medium">*Klik item untuk melihat rincian riwayat.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                
                 <!-- KOLOM KIRI: PEMASUKAN -->
                 <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     <h3 class="text-sm font-bold text-emerald-600 mb-4 uppercase tracking-widest flex items-center gap-2 border-b border-slate-200 pb-3">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                         Pemasukan
                     </h3>
-                    <div class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                    <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2">
                         <button v-for="(total, kat) in categoryTotalsPemasukan" :key="kat" @click="openModal('category', kat, 'Pemasukan')" class="w-full flex justify-between items-center p-3.5 bg-white rounded-xl hover:bg-emerald-50 hover:border-emerald-200 hover:shadow-sm border border-slate-100 transition-all cursor-pointer group text-left">
                             <span class="font-bold text-sm text-slate-700 group-hover:text-emerald-700">{{ kat }}</span>
                             <span class="font-extrabold text-emerald-600 text-sm">+ Rp {{ formatRupiah(total) }}</span>
@@ -188,7 +190,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                         Pengeluaran
                     </h3>
-                    <div class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                    <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2">
                         <button v-for="(total, kat) in categoryTotalsPengeluaran" :key="kat" @click="openModal('category', kat, 'Pengeluaran')" class="w-full flex justify-between items-center p-3.5 bg-white rounded-xl hover:bg-rose-50 hover:border-rose-200 hover:shadow-sm border border-slate-100 transition-all cursor-pointer group text-left">
                             <span class="font-bold text-sm text-slate-700 group-hover:text-rose-700">{{ kat }}</span>
                             <span class="font-extrabold text-rose-600 text-sm">- Rp {{ formatRupiah(total) }}</span>
@@ -198,10 +200,18 @@
                         </div>
                     </div>
                 </div>
-
             </div>
-        </section>
 
+            <!-- GRAFIK TENGAH BAWAH: RASIO PEMASUKAN VS PENGELUARAN -->
+            <div class="mt-8 pt-8 border-t border-slate-100 flex flex-col items-center">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">Rasio Pemasukan vs Pengeluaran</h3>
+                <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-wider text-center">(Berdasarkan rentang waktu yang difilter)</p>
+                <div class="relative h-[250px] w-full max-w-md">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+
+        </section>
     </main>
 
     <!-- UNIVERSAL MODAL -->
@@ -213,7 +223,6 @@
                 <div>
                     <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 flex items-center gap-2">
                         {{ modal.type === 'category' ? 'Rincian Kategori:' : 'Rincian Pembayaran:' }} 
-                        <!-- Warna judul dinamis tergantung jenisnya Pemasukan/Pengeluaran -->
                         <span :class="modal.jenis === 'Pemasukan' ? 'text-emerald-600 bg-emerald-100 px-3 py-1 rounded-lg' : 'text-rose-600 bg-rose-100 px-3 py-1 rounded-lg'">
                             {{ modal.title }}
                         </span>
@@ -240,15 +249,11 @@
                         <tbody class="divide-y divide-slate-100">
                             <tr v-for="(item, idx) in modal.data" :key="idx" class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{{ formatTanggalView(item.tanggal) }}</td>
-                                
                                 <td v-if="modal.type === 'payment'" class="px-6 py-4 font-bold text-slate-700">{{ item.kategori }}</td>
                                 <td v-if="modal.type === 'category' && modal.jenis === 'Pengeluaran'" class="px-6 py-4">
                                     <span class="px-2 py-1 bg-slate-100 rounded-md text-xs font-semibold">{{ item.metodePembayaran || 'Cash' }}</span>
                                 </td>
-                                
                                 <td class="px-6 py-4 text-slate-600 font-medium">{{ item.keterangan || '-' }}</td>
-                                
-                                <!-- Warna nominal dinamis di dalam tabel Modal -->
                                 <td class="px-6 py-4 text-right font-bold whitespace-nowrap" :class="item.jenis === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'">
                                     {{ item.jenis === 'Pemasukan' ? '+' : '-' }} Rp {{ formatRupiah(item.nominal) }}
                                 </td>
@@ -299,6 +304,7 @@ createApp({
 
         let chartCat = null;
         let chartDist = null;
+        let chartIncExp = null; // Variabel untuk chart baru
 
         const form = ref({
             tanggal: getCurrentDateTimeLocal(),
@@ -322,7 +328,6 @@ createApp({
             });
         });
 
-        // Kategori Pengeluaran (Untuk Kolom Kanan & Grafik)
         const categoryTotalsPengeluaran = computed(() => {
             const totals = {};
             filteredData.value.filter(d => d.jenis === 'Pengeluaran').forEach(d => {
@@ -331,7 +336,6 @@ createApp({
             return Object.fromEntries(Object.entries(totals).sort(([,a],[,b]) => b-a));
         });
 
-        // Kategori Pemasukan (Untuk Kolom Kiri)
         const categoryTotalsPemasukan = computed(() => {
             const totals = {};
             filteredData.value.filter(d => d.jenis === 'Pemasukan').forEach(d => {
@@ -379,7 +383,6 @@ createApp({
             finally { isLoading.value = false; }
         };
 
-        // ================= FUNGSI MODAL =================
         const openModal = (type, title, jenisTransaksi = 'Pengeluaran') => {
             modal.value.type = type;
             modal.value.title = title;
@@ -388,7 +391,7 @@ createApp({
             let filtered = [];
             if(type === 'payment') {
                 filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && (d.metodePembayaran || 'Cash') === title);
-                modal.value.jenis = 'Pengeluaran'; // Override karena payment hanya untuk pengeluaran
+                modal.value.jenis = 'Pengeluaran';
             } else if (type === 'category') {
                 filtered = dataTransaksi.value.filter(d => d.jenis === jenisTransaksi && d.kategori === title);
             }
@@ -404,6 +407,7 @@ createApp({
         const renderSemuaChart = () => {
             renderCategoryChart();
             renderPaymentDistChart();
+            renderIncomeExpenseChart(); // Memanggil render chart rasio
         };
 
         const renderCategoryChart = () => {
@@ -448,7 +452,7 @@ createApp({
                     labels: labels,
                     datasets: [{
                         data: chartData,
-                        backgroundColor: ['#10b981', '#3b82f6', '#f97316'], // Hijau, Biru, Oranye
+                        backgroundColor: ['#10b981', '#3b82f6', '#f97316'],
                         borderWidth: 0, hoverOffset: 4
                     }]
                 },
@@ -462,8 +466,49 @@ createApp({
                             formatter: (value, context) => {
                                 if (!hasData || value === 0) return ''; 
                                 let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                let percentage = (value * 100 / sum).toFixed(1) + "%";
-                                return percentage;
+                                return (value * 100 / sum).toFixed(1) + "%";
+                            }
+                        }
+                    } 
+                }
+            });
+        };
+
+        // FUNGSI GRAFIK BARU: Rasio Pemasukan vs Pengeluaran
+        const renderIncomeExpenseChart = () => {
+            const ctx = document.getElementById('incomeExpenseChart');
+            if(!ctx) return;
+            if (chartIncExp) chartIncExp.destroy();
+            
+            // Mengambil total pemasukan & pengeluaran dari data yang sudah difilter waktunya
+            const incTotal = filteredData.value.filter(d => d.jenis === 'Pemasukan').reduce((a, b) => a + Number(b.nominal), 0);
+            const expTotal = filteredData.value.filter(d => d.jenis === 'Pengeluaran').reduce((a, b) => a + Number(b.nominal), 0);
+
+            const hasData = incTotal > 0 || expTotal > 0;
+            const chartData = hasData ? [incTotal, expTotal] : [1, 1]; // Fallback jika tidak ada data sama sekali
+
+            chartIncExp = new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pemasukan', 'Pengeluaran'],
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: hasData ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], // Emerald vs Rose
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, cutout: '60%',
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 13, weight: 'bold' } } },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 16 },
+                            formatter: (value, context) => {
+                                if (!hasData || value === 0) return ''; 
+                                let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                return (value * 100 / sum).toFixed(1) + "%";
                             }
                         }
                     } 
