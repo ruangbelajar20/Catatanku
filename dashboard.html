@@ -291,6 +291,31 @@
                 <h3 class="text-4xl font-extrabold mt-2 relative z-10">Rp {{ formatRupiah(totalTabungan) }}</h3>
                 <p class="text-xs text-emerald-200 mt-2 relative z-10">Dari seluruh riwayat (Mengabaikan filter waktu)</p>
             </div>
+            <!-- KARTU TARGET TABUNGAN -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 hover:shadow-md transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-emerald-100 rounded-2xl text-2xl">🎯</div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Tabungan</p>
+                        <h3 class="text-xl font-extrabold text-slate-800">Rp {{ formatRupiah(targetTabungan) }}</h3>
+                    </div>
+                </div>
+                
+                <!-- Progres Bar Sederhana -->
+                <div class="flex-1 w-full max-w-md">
+                    <div class="flex justify-between text-[10px] font-bold mb-1">
+                        <span class="text-slate-500 uppercase">Progres Pencapaian</span>
+                        <span class="text-emerald-600">{{ Math.min(((totalTabungan / (targetTabungan || 1)) * 100), 100).toFixed(1) }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full transition-all duration-1000" :style="{ width: Math.min(((totalTabungan / (targetTabungan || 1)) * 100), 100) + '%' }"></div>
+                    </div>
+                </div>
+            
+                <button @click="setTargetTabungan" class="bg-slate-800 text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-900 transition-all shadow-md active:scale-95">
+                    Set Target
+                </button>
+            </div>
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <div class="xl:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                     <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-2">Grafik Pertumbuhan Tabungan</h3>
@@ -460,7 +485,7 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        const API_URL = "https://script.google.com/macros/s/AKfycbxHyr4-beGWvfpdfZ599ZgeswRPIrz8xbVA6XsbMu5AlvnqFjBlOakUGeOQoI9zxH7Sug/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbyOVaQERce4EiR_gm66k35XrMN00q5Gbl6LMB3n83EUgbMDGLf2gHvthLsgbwO7heqm4A/exec"; 
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; 
         
         onMounted(() => {
@@ -507,6 +532,7 @@ createApp({
 
         const persentaseBatasAman = ref(localStorage.getItem('financeFlow_batasAman') || 30);
         const simulasiGaji = ref(5000000); 
+        const targetTabungan = ref(localStorage.getItem('financeFlow_targetTabungan') || 0);
 
         // State AI
         const isAnalyzingAI = ref(false);
@@ -596,7 +622,9 @@ createApp({
                 inc: totalPemasukanFilter.value,
                 exp: totalPengeluaranFilter.value,
                 debt: totalHutangAktif.value,
-                kategori: categoryTotalsPengeluaran.value
+                kategori: categoryTotalsPengeluaran.value,
+                targetSaving: targetTabungan.value,
+                totalSaving: totalTabungan.value
             };
 
             try {
@@ -663,6 +691,18 @@ createApp({
         const editBatasAman = () => {
             const newLimit = prompt("Atur persentase batas aman (1-100):", persentaseBatasAman.value);
             if(newLimit && !isNaN(newLimit) && newLimit > 0 && newLimit <= 100) { persentaseBatasAman.value = Number(newLimit); localStorage.setItem('financeFlow_batasAman', newLimit); showNotif("Persentase batas aman diperbarui", "success"); }
+        };
+
+        const setTargetTabungan = () => {
+            const input = prompt("Masukkan target tabungan Anda (Nominal Rp):", targetTabungan.value);
+            if (input !== null && !isNaN(input)) {
+                targetTabungan.value = Number(input);
+                localStorage.setItem('financeFlow_targetTabungan', input);
+                showNotif("Target tabungan berhasil diperbarui", "success");
+                
+                // Panggil ulang AI jika sedang di tab analisis agar data sinkron
+                if(activeTab.value === 'analisis') analisisDenganAI();
+            }
         };
 
         const bukaModalBayar = (item) => { modalBayar.value.data = item; modalBayar.value.nominalInput = item.nominal - item.terbayar; modalBayar.value.isOpen = true; };
@@ -784,7 +824,8 @@ createApp({
             }
         };
 
-        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif };
+        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, 
+    setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif };
     }
 }).mount('#app');
 </script>
