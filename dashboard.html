@@ -782,7 +782,34 @@ createApp({
         const refreshModalData = () => { let f = []; if(modal.value.type === 'category') f = filteredData.value.filter(d => d.jenis === modal.value.jenis && d.kategori === modal.value.title); modal.value.data = f.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)); };
         const closeModal = () => { modal.value.isOpen = false; };
 
-        // ================= ENGINE CHART.JS =================
+        // ================= ENGINE CHART.JS (DESAIN MODERN) =================
+        // Mengatur font bawaan agar selaras dengan desain aplikasi
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        // Desain Tooltip (Kotak Info saat grafik di-hover) bergaya modern
+        const modernTooltip = {
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { size: 13, weight: 'bold' },
+            bodyFont: { size: 14, weight: 'bold' },
+            padding: 12,
+            cornerRadius: 12,
+            displayColors: true,
+            boxPadding: 6,
+            callbacks: {
+                label: function(context) {
+                    let label = context.dataset.label || context.label || '';
+                    if (label) label += ': ';
+                    if (context.parsed.y !== null && context.parsed.y !== undefined) {
+                        label += 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                    } else if (context.parsed !== null) {
+                        label += 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed);
+                    }
+                    return label;
+                }
+            }
+        };
+
         const renderChartsForActiveTab = () => {
             if(activeTab.value === 'dashboard') { renderDashboardCharts(); } 
             else if (activeTab.value === 'cicilan') { renderCicilanCharts(); }
@@ -794,14 +821,58 @@ createApp({
             const ctx1 = document.getElementById('incomeExpenseChart'); 
             if(ctx1) {
                 if (chartIncExp) chartIncExp.destroy();
-                const inc = totalPemasukanFilter.value; const exp = totalPengeluaranFilter.value;
-                chartIncExp = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Masuk', 'Keluar'], datasets: [{ data: [inc, exp], backgroundColor: ['#10b981', '#e11d48'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+                const inc = totalPemasukanFilter.value; const exp = totalPengeluaranFilter.value; const hd = inc > 0 || exp > 0;
+                chartIncExp = new Chart(ctx1.getContext('2d'), { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['Pemasukan', 'Pengeluaran'], 
+                        datasets: [{ 
+                            data: hd ? [inc, exp] : [1, 1], 
+                            backgroundColor: hd ? ['#10b981', '#f43f5e'] : ['#f1f5f9', '#f1f5f9'], 
+                            borderWidth: 4, 
+                            borderColor: '#ffffff',
+                            hoverOffset: 12,
+                            borderRadius: 20 // Ujung melengkung modern
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, cutout: '75%',
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                            datalabels: { display: false }, // MENGHILANGKAN ANGKA BERTUMPUK
+                            tooltip: modernTooltip
+                        },
+                        animation: { animateScale: true, animateRotate: true }
+                    } 
+                });
             }
             const ctx2 = document.getElementById('dashboardPaymentDistChart');
             if(ctx2) {
                 if (chartDist) chartDist.destroy();
-                const d = [paymentTotals.value['Cash'] || 0, paymentTotals.value['Kredit Kredivo'] || 0, paymentTotals.value['Kredit SPaylater'] || 0];
-                chartDist = new Chart(ctx2.getContext('2d'), { type: 'doughnut', data: { labels: ['Cash', 'Kredivo', 'SPaylater'], datasets: [{ data: d, backgroundColor: ['#10b981', '#3b82f6', '#f97316'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+                const d = [paymentTotals.value['Cash'] || 0, paymentTotals.value['Kredit Kredivo'] || 0, paymentTotals.value['Kredit SPaylater'] || 0]; const hd = d.some(v => v > 0);
+                chartDist = new Chart(ctx2.getContext('2d'), { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['Cash', 'Kredivo', 'SPaylater'], 
+                        datasets: [{ 
+                            data: hd ? d : [1, 0, 0], 
+                            backgroundColor: ['#10b981', '#3b82f6', '#f97316'], 
+                            borderWidth: 4, 
+                            borderColor: '#ffffff',
+                            hoverOffset: 12,
+                            borderRadius: 20
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, cutout: '75%',
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                            datalabels: { display: false }, // MENGHILANGKAN ANGKA BERTUMPUK
+                            tooltip: modernTooltip
+                        },
+                        animation: { animateScale: true, animateRotate: true }
+                    } 
+                });
             }
         };
 
@@ -811,7 +882,48 @@ createApp({
                 if(chartStatusCicilan) chartStatusCicilan.destroy();
                 const dibayar = listCicilan.value.filter(d => d.status === 'Belum Lunas').reduce((a,b) => a + Number(b.terbayar), 0);
                 const lunas = listCicilan.value.filter(d => d.status === 'Lunas').reduce((a,b) => a + Number(b.nominal), 0);
-                chartStatusCicilan = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Terbayar', 'Sisa'], datasets: [{ data: [lunas + dibayar, totalHutangAktif.value], backgroundColor: ['#10b981', '#e11d48'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+                const totalTuntas = lunas + dibayar; const blm = totalHutangAktif.value; const hd = totalTuntas > 0 || blm > 0;
+                chartStatusCicilan = new Chart(ctx1.getContext('2d'), { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['Sudah Dibayar', 'Sisa Hutang'], 
+                        datasets: [{ 
+                            data: hd ? [totalTuntas, blm] : [1,1], 
+                            backgroundColor: hd ? ['#10b981', '#f43f5e'] : ['#f1f5f9', '#f1f5f9'], 
+                            borderWidth: 4, borderColor: '#ffffff', hoverOffset: 12, borderRadius: 20
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, cutout: '75%', 
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                            datalabels: { display: false },
+                            tooltip: modernTooltip
+                        }
+                    } 
+                });
+            }
+            const ctx2 = document.getElementById('cicilanTrendChart');
+            if(ctx2) {
+                if(chartTrendCicilan) chartTrendCicilan.destroy();
+                chartTrendCicilan = new Chart(ctx2.getContext('2d'), { 
+                    type: 'bar', 
+                    data: { 
+                        labels: ['Kredivo', 'SPaylater'], 
+                        datasets: [{ 
+                            label: 'Total Hutang Berjalan', 
+                            data: [hutangKredivoTotal.value, hutangSpaylaterTotal.value], 
+                            backgroundColor: ['#3b82f6', '#f97316'], 
+                            borderRadius: 8, barPercentage: 0.6
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: modernTooltip },
+                        scales: { y: { grid: { display: false, drawBorder: false }, ticks: { display: false } }, x: { grid: { display: false, drawBorder: false } } },
+                        animation: { y: { duration: 1000, easing: 'easeOutQuart' } }
+                    } 
+                });
             }
         };
 
@@ -820,7 +932,45 @@ createApp({
             if(ctx) {
                 if(chartTabunganIns) chartTabunganIns.destroy();
                 const labels = Object.keys(tabunganPerBulan.value); const data = Object.values(tabunganPerBulan.value);
-                chartTabunganIns = new Chart(ctx.getContext('2d'), { type: 'line', data: { labels, datasets: [{ label: 'Tabungan', data, borderColor: '#10b981', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
+                
+                // Membuat efek gradasi modern di bawah garis
+                const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+                chartTabunganIns = new Chart(ctx.getContext('2d'), { 
+                    type: 'line', 
+                    data: { 
+                        labels: labels.length ? labels : ['Belum ada'], 
+                        datasets: [{ 
+                            label: 'Tabungan', 
+                            data: data.length ? data : [0], 
+                            borderColor: '#10b981', 
+                            backgroundColor: gradient, 
+                            borderWidth: 3, 
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#10b981',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            fill: true, 
+                            tension: 0.4 // Membuat garis melengkung dinamis
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: modernTooltip }, 
+                        scales: { 
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] },
+                                ticks: { callback: function(value) { return 'Rp ' + (value/1000) + 'k'; } }
+                            },
+                            x: { grid: { display: false, drawBorder: false } }
+                        },
+                        interaction: { intersect: false, mode: 'index' }
+                    } 
+                });
             }
         };
 
@@ -828,7 +978,23 @@ createApp({
             const ctx = document.getElementById('radarAnalysisChart');
             if(ctx) {
                 if(chartRadar) chartRadar.destroy();
-                chartRadar = new Chart(ctx.getContext('2d'), { type: 'bar', data: { labels: ['Masuk', 'Keluar', 'Hutang'], datasets: [{ data: [totalPemasukanFilter.value, totalPengeluaranFilter.value, totalHutangAktif.value], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+                chartRadar = new Chart(ctx.getContext('2d'), { 
+                    type: 'bar', 
+                    data: { 
+                        labels: ['Pemasukan', 'Pengeluaran', 'Hutang Aktif'], 
+                        datasets: [{ 
+                            data: [totalPemasukanFilter.value, totalPengeluaranFilter.value, totalHutangAktif.value], 
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], 
+                            borderRadius: 8, barPercentage: 0.5
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: modernTooltip }, 
+                        scales: { y: { display: false }, x: { grid: { display: false, drawBorder: false } } },
+                        animation: { y: { duration: 1000, easing: 'easeOutQuart' } }
+                    } 
+                });
             }
         };
 
