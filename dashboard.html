@@ -431,7 +431,7 @@ createApp({
         // Cek Login Protection
         onMounted(() => {
             if(!localStorage.getItem('ff_token')) {
-                window.location.href = 'login.html'; 
+                window.location.href = 'index.html'; 
             } else {
                 fetchData();
             }
