@@ -10,12 +10,8 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         [v-cloak] { display: none; }
-        
-        /* Animasi Transisi Halus */
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        
-        /* Animasi Notifikasi Mengambang (Toast) */
         .toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(50px) scale(0.9); }
     </style>
@@ -24,7 +20,6 @@
 
 <div id="authApp" v-cloak class="w-full flex justify-center items-center h-full">
     
-    <!-- NOTIFIKASI MENGAMBANG MODERN (TOAST) -->
     <transition name="toast">
         <div v-if="notif.show" 
              class="fixed top-6 right-6 md:right-8 z-[9999] px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm flex items-center gap-3 backdrop-blur-md"
@@ -36,8 +31,6 @@
     </transition>
 
     <div class="w-full max-w-md bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-8 relative overflow-hidden animate-fade-in z-10">
-        
-        <!-- Ornamen Latar Belakang -->
         <div class="absolute -right-16 -top-16 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-60"></div>
         <div class="absolute -left-16 -bottom-16 w-40 h-40 bg-indigo-50 rounded-full blur-3xl opacity-60"></div>
 
@@ -45,11 +38,11 @@
             <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner border border-blue-100">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">MyFinanceFlow</h1>
+            <!-- PERUBAHAN WARNA JUDUL ADA DI SINI -->
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Finance<span class="text-blue-600">Flow</span> <span class="text-blue-600">Pro</span></h1>
             <p class="text-sm text-slate-500 mt-2 font-medium">{{ mode === 'login' ? 'Otorisasi Akses Manajemen Finansial' : 'Pemulihan Kredensial Akses' }}</p>
         </div>
 
-        <!-- FORM LOGIN -->
         <form v-if="mode === 'login'" @submit.prevent="doLogin" class="space-y-5 relative z-10">
             <div>
                 <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Username</label>
@@ -68,10 +61,9 @@
             </div>
         </form>
 
-        <!-- FORM LUPA PASSWORD -->
         <form v-if="mode === 'forgot'" @submit.prevent="doReset" class="space-y-5 relative z-10">
             <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100 mb-2">
-                <p class="text-xs text-orange-700 font-medium text-center">Sistem akan mengirimkan data kredensial Anda ke alamat email yang terdaftar di basis data.</p>
+                <p class="text-xs text-orange-700 font-medium text-center">Sistem akan mengirimkan data kredensial ke alamat email di basis data.</p>
             </div>
             <div>
                 <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Email Terdaftar</label>
@@ -90,88 +82,49 @@
 
 <script>
 const { createApp, ref, onMounted } = Vue;
-
 createApp({
     setup() {
-        // ==========================================
-        // WAJIB GANTI DENGAN LINK APPS SCRIPT ANDA!
-        // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbxn8tiMuUue4ghyMx-YZgo1iaPsuSAc8IAHuO9htx63Pwux04AX7a6yqV2BJOXP_q26qg/exec"; 
-        
+        const API_URL = "https://script.google.com/macros/s/AKfycbxn8tiMuUue4ghyMx-YZgo1iaPsuSAc8IAHuO9htx63Pwux04AX7a6yqV2BJOXP_q26qg/exec"; // WAJIB GANTI
         const mode = ref('login'); 
         const isLoading = ref(false);
         const formLogin = ref({ username: '', password: '' });
         const formReset = ref({ email: '' });
-        
-        // State Notifikasi
         const notif = ref({ show: false, message: '', type: 'success' });
 
-        // Fungsi pemicu notifikasi
         const showNotif = (msg, type = 'success') => {
             notif.value = { show: true, message: msg, type: type };
-            // Hilang otomatis setelah 3.5 detik
             setTimeout(() => { notif.value.show = false; }, 3500);
         };
 
-        // Jika user sudah pernah login dan tokennya masih ada, langsung tendang ke dashboard
-        onMounted(() => {
-            if(localStorage.getItem('ff_token')) {
-                window.location.href = 'dashboard.html';
-            }
-        });
+        onMounted(() => { if(localStorage.getItem('ff_token')) window.location.href = 'dashboard.html'; });
 
         const doLogin = async () => {
             isLoading.value = true;
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'login', ...formLogin.value })
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', ...formLogin.value }) });
                 const response = await res.json();
-                
                 if (response.status === 'success') {
                     showNotif('Otorisasi berhasil! Mengalihkan...', 'success');
                     localStorage.setItem('ff_token', response.token);
-                    
-                    // Beri jeda 1 detik agar animasi notifikasi hijau terlihat sebelum pindah halaman
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html'; 
-                    }, 1000);
-                    
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
                 } else {
                     showNotif(response.message || 'Kredensial tidak valid!', 'error');
-                    formLogin.value.password = ''; // Kosongkan password jika salah
+                    formLogin.value.password = '';
                 }
-            } catch (e) {
-                showNotif("Server tidak merespons. Periksa koneksi Anda.", 'error');
-            } finally { 
-                isLoading.value = false; 
-            }
+            } catch (e) { showNotif("Server tidak merespons.", 'error'); } finally { isLoading.value = false; }
         };
 
         const doReset = async () => {
             isLoading.value = true;
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'forgot_password', email: formReset.value.email })
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'forgot_password', email: formReset.value.email }) });
                 const response = await res.json();
-                
                 if (response.status === 'success') {
                     showNotif(response.message || 'Email pemulihan terkirim!', 'success');
                     formReset.value.email = '';
-                    
-                    // Kembali ke form login setelah 2.5 detik
                     setTimeout(() => { mode.value = 'login'; }, 2500);
-                } else {
-                    showNotif(response.message || 'Email tidak terdaftar!', 'error');
-                }
-            } catch (e) {
-                showNotif("Gagal terhubung ke sistem mailer Google.", 'error');
-            } finally { 
-                isLoading.value = false; 
-            }
+                } else { showNotif(response.message || 'Email tidak terdaftar!', 'error'); }
+            } catch (e) { showNotif("Gagal terhubung ke sistem.", 'error'); } finally { isLoading.value = false; }
         };
 
         return { mode, isLoading, formLogin, formReset, doLogin, doReset, notif };
