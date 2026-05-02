@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Keuangan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
+
+<div id="app" class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Catatan Keuangan</h1>
+            <p class="text-sm text-slate-500">Pantau arus kas dan pengeluaran Anda</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex gap-4 text-right">
+            <div>
+                <p class="text-xs text-slate-500 uppercase font-semibold">Total Pemasukan</p>
+                <p class="text-lg font-bold text-emerald-600">Rp {{ formatRupiah(totalPemasukan) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500 uppercase font-semibold">Total Pengeluaran</p>
+                <p class="text-lg font-bold text-rose-600">Rp {{ formatRupiah(totalPengeluaran) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Form Input -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
+            <h2 class="text-lg font-semibold mb-4">Catat Transaksi</h2>
+            <form @submit.prevent="simpanData" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal</label>
+                    <input type="date" v-model="form.tanggal" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Jenis</label>
+                    <select v-model="form.jenis" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="Pemasukan">Pemasukan</option>
+                        <option value="Pengeluaran">Pengeluaran</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                    <input type="text" v-model="form.kategori" placeholder="Contoh: Makanan, Gaji, dll" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nominal (Rp)</label>
+                    <input type="number" v-model="form.nominal" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Keterangan</label>
+                    <textarea v-model="form.keterangan" rows="2" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <button type="submit" :disabled="isLoading" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex justify-center">
+                    <span v-if="!isLoading">Simpan Transaksi</span>
+                    <span v-else>Menyimpan...</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Grafik & Analitik -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">Grafik Pengeluaran per Kategori</h2>
+                <select v-model="filterWaktu" @change="updateChart" class="text-sm px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 outline-none">
+                    <option value="all">Semua Waktu</option>
+                    <option value="1">Hari Ini</option>
+                    <option value="30">1 Bulan Terakhir</option>
+                    <option value="90">3 Bulan Terakhir</option>
+                    <option value="180">6 Bulan Terakhir</option>
+                    <option value="365">1 Tahun Terakhir</option>
+                </select>
+            </div>
+            
+            <div class="flex-grow relative h-64 w-full">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, onMounted, computed } = Vue;
+
+createApp({
+    setup() {
+        const API_URL = "URL_WEB_APP_ANDA_DISINI"; // MASUKKAN URL APPS SCRIPT DI SINI
+        
+        const dataTransaksi = ref([]);
+        const isLoading = ref(false);
+        const filterWaktu = ref('30'); // Default 1 bulan terakhir
+        let chartInstance = null;
+
+        const form = ref({
+            tanggal: new Date().toISOString().split('T')[0],
+            jenis: 'Pengeluaran',
+            kategori: '',
+            nominal: '',
+            keterangan: ''
+        });
+
+        const totalPemasukan = computed(() => {
+            return dataTransaksi.value
+                .filter(d => d.jenis === 'Pemasukan')
+                .reduce((acc, curr) => acc + Number(curr.nominal), 0);
+        });
+
+        const totalPengeluaran = computed(() => {
+            return dataTransaksi.value
+                .filter(d => d.jenis === 'Pengeluaran')
+                .reduce((acc, curr) => acc + Number(curr.nominal), 0);
+        });
+
+        const formatRupiah = (angka) => {
+            return new Intl.NumberFormat('id-ID').format(angka);
+        };
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                dataTransaksi.value = result;
+                updateChart();
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+            }
+        };
+
+        const simpanData = async () => {
+            isLoading.value = true;
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(form.value)
+                });
+                // Reset form sebagian
+                form.value.nominal = '';
+                form.value.kategori = '';
+                form.value.keterangan = '';
+                await fetchData(); // Refresh data
+            } catch (error) {
+                alert("Gagal menyimpan data!");
+            } finally {
+                isLoading.value = false;
+            }
+        };
+
+        const filterDataByTime = (data) => {
+            if (filterWaktu.value === 'all') return data;
+            
+            const now = new Date();
+            const pastDate = new Date();
+            pastDate.setDate(now.getDate() - parseInt(filterWaktu.value));
+
+            return data.filter(item => {
+                const itemDate = new Date(item.tanggal);
+                return itemDate >= pastDate && itemDate <= now;
+            });
+        };
+
+        const updateChart = () => {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            
+            // Filter hanya pengeluaran berdasarkan waktu
+            const filteredData = filterDataByTime(dataTransaksi.value)
+                .filter(d => d.jenis === 'Pengeluaran');
+
+            // Kelompokkan berdasarkan kategori
+            const categoryData = {};
+            filteredData.forEach(d => {
+                categoryData[d.kategori] = (categoryData[d.kategori] || 0) + Number(d.nominal);
+            });
+
+            const labels = Object.keys(categoryData);
+            const values = Object.values(categoryData);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.length ? labels : ['Belum ada data'],
+                    datasets: [{
+                        data: values.length ? values : [1],
+                        backgroundColor: [
+                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                            '#8b5cf6', '#ec4899', '#06b6d4', '#eab308'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(!values.length) return 'Data Kosong';
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) {
+                                        label += 'Rp ' + formatRupiah(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        };
+
+        onMounted(() => {
+            fetchData();
+        });
+
+        return {
+            form, dataTransaksi, isLoading, filterWaktu,
+            totalPemasukan, totalPengeluaran,
+            simpanData, formatRupiah, updateChart
+        };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
