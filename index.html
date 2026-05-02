@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Tambahan Plugin Datalabels untuk Persentase -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -45,10 +44,9 @@
 
     <main class="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
-        <!-- SIDEBAR KIRI (FORM & KATEGORI) -->
+        <!-- SIDEBAR KIRI (FORM SAJA) -->
         <section class="xl:col-span-4 space-y-6">
-            <!-- Form Input -->
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-full">
                 <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
                     <span class="w-2 h-6 bg-blue-500 rounded-full"></span> Catat Transaksi
                 </h2>
@@ -92,21 +90,9 @@
                     </button>
                 </form>
             </div>
-
-            <!-- List Kategori -->
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                <h2 class="text-sm font-bold mb-4 uppercase tracking-wider text-slate-500">Total Per Kategori <span class="text-[10px] font-normal lowercase bg-slate-100 px-2 py-0.5 rounded-md">(Klik untuk rincian)</span></h2>
-                <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
-                    <button v-for="(total, kat) in categoryTotals" :key="kat" @click="openModal('category', kat)" class="w-full flex justify-between items-center p-3 bg-slate-50 rounded-xl hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer group text-left">
-                        <span class="font-semibold text-sm group-hover:text-blue-700">{{ kat }}</span>
-                        <span class="font-bold text-rose-600 text-sm">Rp {{ formatRupiah(total) }}</span>
-                    </button>
-                    <p v-if="Object.keys(categoryTotals).length === 0" class="text-xs text-center text-slate-400 py-4">Belum ada data kategori.</p>
-                </div>
-            </div>
         </section>
 
-        <!-- AREA KANAN (DASHBOARD & CHARTS) -->
+        <!-- AREA KANAN (KARTU PEMBAYARAN & GRAFIK) -->
         <section class="xl:col-span-8 space-y-6">
             
             <!-- TOMBOL METODE PEMBAYARAN -->
@@ -157,11 +143,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Grafik 1: Kategori (Bar) -->
                     <div class="flex flex-col items-center">
-                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Tren Kategori</h3>
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Tren Kategori (Pengeluaran)</h3>
                         <div class="relative h-[220px] w-full"><canvas id="categoryChart"></canvas></div>
                     </div>
                     
-                    <!-- Grafik 2: Pembayaran (Doughnut dengan Persentase) -->
+                    <!-- Grafik 2: Pembayaran (Doughnut) -->
                     <div class="flex flex-col items-center">
                         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Sebaran Pembayaran</h3>
                         <div class="relative h-[220px] w-full"><canvas id="paymentDistChart"></canvas></div>
@@ -169,6 +155,53 @@
                 </div>
             </div>
         </section>
+
+        <!-- SEKSI BARU: TOTAL PER KATEGORI (KIRI & KANAN) -->
+        <section class="xl:col-span-12 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-3 mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Total Per Kategori</h2>
+                <span class="text-[10px] font-semibold tracking-wider uppercase bg-slate-100 text-slate-500 px-3 py-1 rounded-lg">Klik item untuk lihat rincian</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                
+                <!-- KOLOM KIRI: PEMASUKAN -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h3 class="text-sm font-bold text-emerald-600 mb-4 uppercase tracking-widest flex items-center gap-2 border-b border-slate-200 pb-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                        Pemasukan
+                    </h3>
+                    <div class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                        <button v-for="(total, kat) in categoryTotalsPemasukan" :key="kat" @click="openModal('category', kat, 'Pemasukan')" class="w-full flex justify-between items-center p-3.5 bg-white rounded-xl hover:bg-emerald-50 hover:border-emerald-200 hover:shadow-sm border border-slate-100 transition-all cursor-pointer group text-left">
+                            <span class="font-bold text-sm text-slate-700 group-hover:text-emerald-700">{{ kat }}</span>
+                            <span class="font-extrabold text-emerald-600 text-sm">+ Rp {{ formatRupiah(total) }}</span>
+                        </button>
+                        <div v-if="Object.keys(categoryTotalsPemasukan).length === 0" class="text-center py-8">
+                            <p class="text-sm text-slate-400 font-medium">Belum ada data pemasukan.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KOLOM KANAN: PENGELUARAN -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h3 class="text-sm font-bold text-rose-600 mb-4 uppercase tracking-widest flex items-center gap-2 border-b border-slate-200 pb-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        Pengeluaran
+                    </h3>
+                    <div class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                        <button v-for="(total, kat) in categoryTotalsPengeluaran" :key="kat" @click="openModal('category', kat, 'Pengeluaran')" class="w-full flex justify-between items-center p-3.5 bg-white rounded-xl hover:bg-rose-50 hover:border-rose-200 hover:shadow-sm border border-slate-100 transition-all cursor-pointer group text-left">
+                            <span class="font-bold text-sm text-slate-700 group-hover:text-rose-700">{{ kat }}</span>
+                            <span class="font-extrabold text-rose-600 text-sm">- Rp {{ formatRupiah(total) }}</span>
+                        </button>
+                        <div v-if="Object.keys(categoryTotalsPengeluaran).length === 0" class="text-center py-8">
+                            <p class="text-sm text-slate-400 font-medium">Belum ada data pengeluaran.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
     </main>
 
     <!-- UNIVERSAL MODAL -->
@@ -178,11 +211,14 @@
             
             <div class="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div>
-                    <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">
+                    <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 flex items-center gap-2">
                         {{ modal.type === 'category' ? 'Rincian Kategori:' : 'Rincian Pembayaran:' }} 
-                        <span :class="modal.type === 'category' ? 'text-blue-600' : 'text-emerald-600'">{{ modal.title }}</span>
+                        <!-- Warna judul dinamis tergantung jenisnya Pemasukan/Pengeluaran -->
+                        <span :class="modal.jenis === 'Pemasukan' ? 'text-emerald-600 bg-emerald-100 px-3 py-1 rounded-lg' : 'text-rose-600 bg-rose-100 px-3 py-1 rounded-lg'">
+                            {{ modal.title }}
+                        </span>
                     </h2>
-                    <p class="text-xs md:text-sm text-slate-500 mt-1">Daftar transaksi berdasarkan pilihan Anda (Pengeluaran).</p>
+                    <p class="text-xs md:text-sm text-slate-500 mt-2 font-medium">Menampilkan riwayat data berdasarkan filter pilihan.</p>
                 </div>
                 <button @click="closeModal" class="p-2 bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-colors shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -196,7 +232,7 @@
                             <tr>
                                 <th class="px-6 py-4">Waktu & Tanggal</th>
                                 <th v-if="modal.type === 'payment'" class="px-6 py-4">Kategori</th>
-                                <th v-if="modal.type === 'category'" class="px-6 py-4">Pembayaran</th>
+                                <th v-if="modal.type === 'category' && modal.jenis === 'Pengeluaran'" class="px-6 py-4">Pembayaran</th>
                                 <th class="px-6 py-4">Keterangan</th>
                                 <th class="px-6 py-4 text-right">Nominal</th>
                             </tr>
@@ -206,13 +242,15 @@
                                 <td class="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{{ formatTanggalView(item.tanggal) }}</td>
                                 
                                 <td v-if="modal.type === 'payment'" class="px-6 py-4 font-bold text-slate-700">{{ item.kategori }}</td>
-                                <td v-if="modal.type === 'category'" class="px-6 py-4">
+                                <td v-if="modal.type === 'category' && modal.jenis === 'Pengeluaran'" class="px-6 py-4">
                                     <span class="px-2 py-1 bg-slate-100 rounded-md text-xs font-semibold">{{ item.metodePembayaran || 'Cash' }}</span>
                                 </td>
                                 
                                 <td class="px-6 py-4 text-slate-600 font-medium">{{ item.keterangan || '-' }}</td>
-                                <td class="px-6 py-4 text-right font-bold text-rose-600 whitespace-nowrap">
-                                    Rp {{ formatRupiah(item.nominal) }}
+                                
+                                <!-- Warna nominal dinamis di dalam tabel Modal -->
+                                <td class="px-6 py-4 text-right font-bold whitespace-nowrap" :class="item.jenis === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'">
+                                    {{ item.jenis === 'Pemasukan' ? '+' : '-' }} Rp {{ formatRupiah(item.nominal) }}
                                 </td>
                             </tr>
                             <tr v-if="modal.data.length === 0">
@@ -221,8 +259,10 @@
                         </tbody>
                         <tfoot class="bg-slate-50 border-t border-slate-200 sticky bottom-0 z-10" v-if="modal.data.length > 0">
                             <tr>
-                                <td :colspan="3" class="px-6 py-4 text-right font-bold text-slate-600 uppercase text-xs">Total Keseluruhan</td>
-                                <td class="px-6 py-4 text-right font-extrabold text-rose-600 text-base">Rp {{ formatRupiah(modal.total) }}</td>
+                                <td :colspan="modal.type === 'category' && modal.jenis === 'Pemasukan' ? 2 : 3" class="px-6 py-4 text-right font-bold text-slate-600 uppercase text-xs">Total Keseluruhan</td>
+                                <td class="px-6 py-4 text-right font-extrabold text-base" :class="modal.jenis === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'">
+                                    Rp {{ formatRupiah(modal.total) }}
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
@@ -234,7 +274,6 @@
 </div>
 
 <script>
-// Registrasi plugin datalabels secara global
 Chart.register(ChartDataLabels);
 
 const { createApp, ref, onMounted, computed } = Vue;
@@ -247,7 +286,7 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        // PERHATIAN: Masukkan URL Apps Script Anda di sini
+        // MASUKKAN URL APPS SCRIPT ANDA DI SINI
         const API_URL = "https://script.google.com/macros/s/AKfycbxxptr17CnbKceH1jjhkVYhl9KHQLQ6TsKnQlzwBO6XxV93pgP4roFZ6hCa_GYWfmn3dA/exec"; 
         
         const dataTransaksi = ref([]);
@@ -255,7 +294,7 @@ createApp({
         const filterWaktu = ref('30'); 
         
         const modal = ref({
-            isOpen: false, type: '', title: '', data: [], total: 0
+            isOpen: false, type: '', title: '', jenis: '', data: [], total: 0
         });
 
         let chartCat = null;
@@ -283,9 +322,19 @@ createApp({
             });
         });
 
-        const categoryTotals = computed(() => {
+        // Kategori Pengeluaran (Untuk Kolom Kanan & Grafik)
+        const categoryTotalsPengeluaran = computed(() => {
             const totals = {};
             filteredData.value.filter(d => d.jenis === 'Pengeluaran').forEach(d => {
+                totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal);
+            });
+            return Object.fromEntries(Object.entries(totals).sort(([,a],[,b]) => b-a));
+        });
+
+        // Kategori Pemasukan (Untuk Kolom Kiri)
+        const categoryTotalsPemasukan = computed(() => {
+            const totals = {};
+            filteredData.value.filter(d => d.jenis === 'Pemasukan').forEach(d => {
                 totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal);
             });
             return Object.fromEntries(Object.entries(totals).sort(([,a],[,b]) => b-a));
@@ -331,15 +380,19 @@ createApp({
         };
 
         // ================= FUNGSI MODAL =================
-        const openModal = (type, title) => {
+        const openModal = (type, title, jenisTransaksi = 'Pengeluaran') => {
             modal.value.type = type;
             modal.value.title = title;
+            modal.value.jenis = jenisTransaksi;
+            
             let filtered = [];
             if(type === 'payment') {
                 filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && (d.metodePembayaran || 'Cash') === title);
+                modal.value.jenis = 'Pengeluaran'; // Override karena payment hanya untuk pengeluaran
             } else if (type === 'category') {
-                filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && d.kategori === title);
+                filtered = dataTransaksi.value.filter(d => d.jenis === jenisTransaksi && d.kategori === title);
             }
+            
             modal.value.data = filtered.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
             modal.value.total = filtered.reduce((acc, curr) => acc + Number(curr.nominal), 0);
             modal.value.isOpen = true;
@@ -360,19 +413,15 @@ createApp({
             chartCat = new Chart(ctx.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(categoryTotals.value).length ? Object.keys(categoryTotals.value) : ['Kosong'],
+                    labels: Object.keys(categoryTotalsPengeluaran.value).length ? Object.keys(categoryTotalsPengeluaran.value) : ['Kosong'],
                     datasets: [{
-                        label: 'Rp', data: Object.values(categoryTotals.value).length ? Object.values(categoryTotals.value) : [0],
+                        label: 'Rp', data: Object.values(categoryTotalsPengeluaran.value).length ? Object.values(categoryTotalsPengeluaran.value) : [0],
                         backgroundColor: '#3b82f6', borderRadius: 4
                     }]
                 },
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { display: false },
-                        // Nonaktifkan persentase untuk grafik bar kategori
-                        datalabels: { display: false } 
-                    }, 
+                    plugins: { legend: { display: false }, datalabels: { display: false } }, 
                     scales: { x: { display: false } } 
                 }
             });
@@ -407,12 +456,11 @@ createApp({
                     responsive: true, maintainAspectRatio: false, cutout: '65%',
                     plugins: { 
                         legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 12 } } },
-                        // Konfigurasi Persentase
                         datalabels: {
                             color: '#ffffff',
                             font: { weight: 'bold', size: 13 },
                             formatter: (value, context) => {
-                                if (!hasData || value === 0) return ''; // Jangan tampilkan teks jika tidak ada data/nol
+                                if (!hasData || value === 0) return ''; 
                                 let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                                 let percentage = (value * 100 / sum).toFixed(1) + "%";
                                 return percentage;
@@ -427,7 +475,7 @@ createApp({
 
         return {
             form, isLoading, filterWaktu, modal,
-            totalPemasukan, totalPengeluaran, categoryTotals, paymentTotals,
+            totalPemasukan, totalPengeluaran, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals,
             simpanData, formatRupiah, formatTanggalView, renderSemuaChart, openModal, closeModal
         };
     }
