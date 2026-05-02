@@ -3,44 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceFlow Pro Max - Dashboard</title>
+    <title>MyFinanceFlow - Dashboard</title>
+    <!-- Tailwind CSS (Framework Desain Super Ringan & Tangguh) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 (Framework Logika Interaktif) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Chart.js (Library Visualisasi Data Ringan) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         [v-cloak] { display: none; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
         
-        /* Animasi */
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        /* Animasi Kinerja Tinggi (GPU Accelerated) */
+        .animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes customPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .8; transform: scale(1.02); box-shadow: 0 0 15px rgba(225, 29, 72, 0.5); } }
-        .animate-danger-pulse { animation: customPulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes customPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .9; transform: scale(1.02); box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); } }
+        .animate-danger-pulse { animation: customPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         
-        /* Vue Transitions */
-        .page-enter-active, .page-leave-active { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .page-enter-from { opacity: 0; transform: translateY(15px) scale(0.99); }
-        .page-leave-to { opacity: 0; transform: translateY(-15px) scale(0.99); }
-        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+        /* Vue Route Transitions yang Lebih Snappy */
+        .page-enter-active, .page-leave-active { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .page-enter-from { opacity: 0; transform: translateY(15px); }
+        .page-leave-to { opacity: 0; transform: translateY(-15px); }
+        .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
         .modal-enter-from, .modal-leave-to { opacity: 0; }
-        .toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-        .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(50px); }
+        .toast-enter-active, .toast-leave-active { transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(50px) scale(0.9); }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12 relative overflow-x-hidden">
 
 <div id="app" v-cloak class="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6">
     
-    <!-- NOTIFIKASI MENGAMBANG (TOAST) -->
+    <!-- NOTIFIKASI MENGAMBANG -->
     <transition name="toast">
         <div v-if="notif.show" 
-             class="fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm flex items-center gap-3"
-             :class="notif.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'">
+             class="fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm flex items-center gap-3 backdrop-blur-md"
+             :class="notif.type === 'success' ? 'bg-emerald-600/95 border border-emerald-500' : 'bg-rose-600/95 border border-rose-500'">
             <span v-if="notif.type === 'success'" class="text-xl">✅</span>
             <span v-else class="text-xl">⚠️</span>
             {{ notif.message }}
@@ -50,7 +53,7 @@
     <!-- NAVIGATION BAR -->
     <nav class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col xl:flex-row justify-between items-center gap-4 transition-all duration-300 hover:shadow-md mb-6">
         <div class="flex justify-between items-center w-full xl:w-auto gap-4">
-            <h1 class="text-2xl font-extrabold text-blue-600 tracking-tight cursor-pointer hover:scale-105 transition-transform duration-300">FinanceFlow <span class="text-slate-800">Pro</span></h1>
+            <h1 class="text-2xl font-extrabold text-blue-600 tracking-tight cursor-pointer hover:scale-105 transition-transform duration-300">MyFinanceFlow</h1>
             <button @click="bukaDatabase" class="xl:hidden bg-slate-800 text-white px-3 py-2 rounded-xl text-[10px] font-bold shadow-md hover:-translate-y-1 transition-all duration-300">
                 🗄️ Database
             </button>
@@ -83,7 +86,7 @@
         </div>
     </div>
 
-    <!-- WRAPPER TRANSISI HALAMAN -->
+    <!-- WRAPPER TRANSISI HALAMAN UTAMA -->
     <transition name="page" mode="out-in">
         
         <!-- ========================================== -->
@@ -93,9 +96,9 @@
             <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200 gap-4">
                 <div><p class="text-sm text-slate-500 font-medium">Ringkasan Arus Kas Sesuai Filter</p></div>
                 <div class="flex gap-4">
-                    <div class="text-right"><p class="text-[10px] font-bold text-emerald-500 uppercase">Pemasukan</p><p class="text-xl md:text-2xl font-bold text-emerald-600">Rp {{ formatRupiah(totalPemasukanFilter) }}</p></div>
+                    <div class="text-right"><p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Pemasukan</p><p class="text-xl md:text-2xl font-bold text-emerald-600">Rp {{ formatRupiah(totalPemasukanFilter) }}</p></div>
                     <div class="w-px bg-slate-200"></div>
-                    <div class="text-right"><p class="text-[10px] font-bold text-rose-500 uppercase">Pengeluaran</p><p class="text-xl md:text-2xl font-bold text-rose-600">Rp {{ formatRupiah(totalPengeluaranFilter) }}</p></div>
+                    <div class="text-right"><p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Pengeluaran</p><p class="text-xl md:text-2xl font-bold text-rose-600">Rp {{ formatRupiah(totalPengeluaranFilter) }}</p></div>
                 </div>
             </header>
             <main class="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -114,36 +117,36 @@
                                 <button type="button" @click="form.jenis = 'Tabungan'" :class="form.jenis === 'Tabungan' ? 'bg-white shadow-md text-blue-600 scale-[1.02]' : 'text-slate-500 hover:bg-slate-200'" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase transition-all">Tabung</button>
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Nominal (Rp)</label>
-                                <input type="number" v-model="form.nominal" required class="w-full text-2xl font-bold px-4 py-3 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all hover:bg-slate-100">
+                                <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Nominal (Rp)</label>
+                                <input type="number" v-model="form.nominal" required class="w-full text-2xl font-bold px-4 py-3 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white border border-slate-100">
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="col-span-2">
-                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Waktu Transaksi</label>
-                                    <input type="datetime-local" v-model="form.tanggal" required class="w-full px-4 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-slate-100">
+                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Waktu Transaksi</label>
+                                    <input type="datetime-local" v-model="form.tanggal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
                                 </div>
                                 <div v-if="form.jenis !== 'Tabungan'">
-                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Kategori</label>
-                                    <input type="text" v-model="form.kategori" required class="w-full px-4 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-slate-100">
+                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Kategori</label>
+                                    <input type="text" v-model="form.kategori" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
                                 </div>
                                 <div v-if="form.jenis !== 'Tabungan'">
-                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Metode</label>
-                                    <select v-model="form.metodePembayaran" class="w-full px-3 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-slate-100">
+                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Metode</label>
+                                    <select v-model="form.metodePembayaran" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
                                         <option value="Cash">💵 Cash</option>
                                         <option value="Kredit Kredivo">💳 Kredivo</option>
                                         <option value="Kredit SPaylater">🛍️ SPaylater</option>
                                     </select>
                                 </div>
                                 <div class="col-span-2">
-                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Keterangan / Tujuan</label>
-                                    <input type="text" v-model="form.keterangan" class="w-full px-4 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-slate-100">
+                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Keterangan / Tujuan</label>
+                                    <input type="text" v-model="form.keterangan" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
                                 </div>
                             </div>
                             <div class="flex gap-2 mt-4">
-                                <button v-if="isEditing" type="button" @click="batalEdit" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-200 transition-all">Batal</button>
-                                <button type="submit" :disabled="isLoading" :class="isEditing ? 'w-2/3 bg-orange-500 hover:bg-orange-600 shadow-orange-500/30' : 'w-full bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'" class="text-white font-bold py-4 rounded-2xl flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 transition-all">
-                                    <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
-                                    {{ isLoading ? 'Memproses...' : (isEditing ? 'Update Data' : 'Simpan Transaksi') }}
+                                <button v-if="isEditing" type="button" @click="batalEdit" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-200 transition-all shadow-sm">Batal</button>
+                                <button type="submit" :disabled="isLoading" :class="isEditing ? 'w-2/3 bg-orange-500 hover:bg-orange-600 shadow-orange-500/30' : 'w-full bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'" class="text-white font-extrabold py-4 rounded-2xl flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 transition-all">
+                                    <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-5 h-5"></span>
+                                    {{ isLoading ? 'Memproses Data...' : (isEditing ? 'Update Data Transaksi' : 'Simpan Transaksi') }}
                                 </button>
                             </div>
                         </form>
@@ -152,26 +155,26 @@
                 
                 <!-- GRAFIK DASHBOARD -->
                 <section class="xl:col-span-8 space-y-6">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="flex flex-col items-center"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-4">Rasio Arus Kas</h3><div class="relative h-[220px] w-full"><canvas id="incomeExpenseChart"></canvas></div></div>
-                        <div class="flex flex-col items-center"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-4">Sebaran Pembayaran</h3><div class="relative h-[220px] w-full"><canvas id="dashboardPaymentDistChart"></canvas></div></div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8 hover:shadow-md transition-shadow">
+                        <div class="flex flex-col items-center hover:scale-[1.02] transition-transform duration-300"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-4">Rasio Arus Kas</h3><div class="relative h-[220px] w-full"><canvas id="incomeExpenseChart"></canvas></div></div>
+                        <div class="flex flex-col items-center hover:scale-[1.02] transition-transform duration-300"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-4">Sebaran Pembayaran</h3><div class="relative h-[220px] w-full"><canvas id="dashboardPaymentDistChart"></canvas></div></div>
                     </div>
                     <!-- LIST KATEGORI -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white p-5 rounded-3xl border border-slate-200">
-                            <h3 class="text-sm font-bold text-emerald-600 mb-4 border-b pb-2">Pemasukan</h3>
+                        <div class="bg-white p-5 rounded-3xl border border-slate-200 hover:shadow-md transition-shadow">
+                            <h3 class="text-sm font-bold text-emerald-600 mb-4 border-b pb-2 flex items-center gap-2">Pemasukan</h3>
                             <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2">
-                                <button v-for="(total, kat) in categoryTotalsPemasukan" :key="kat" @click="openModal('category', kat, 'Pemasukan')" class="w-full flex justify-between p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl transition-all hover:shadow-sm hover:-translate-y-0.5 text-left">
+                                <button v-for="(total, kat) in categoryTotalsPemasukan" :key="kat" @click="openModal('category', kat, 'Pemasukan')" class="w-full flex justify-between p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl transition-all hover:shadow-sm hover:-translate-y-0.5 text-left border border-slate-100">
                                     <span class="font-bold text-sm text-slate-700">{{ kat }}</span>
                                     <span class="font-extrabold text-emerald-600">+ Rp {{ formatRupiah(total) }}</span>
                                 </button>
                                 <p v-if="Object.keys(categoryTotalsPemasukan).length === 0" class="text-xs text-slate-400 text-center py-4">Data kosong.</p>
                             </div>
                         </div>
-                        <div class="bg-white p-5 rounded-3xl border border-slate-200">
-                            <h3 class="text-sm font-bold text-rose-600 mb-4 border-b pb-2">Pengeluaran</h3>
+                        <div class="bg-white p-5 rounded-3xl border border-slate-200 hover:shadow-md transition-shadow">
+                            <h3 class="text-sm font-bold text-rose-600 mb-4 border-b pb-2 flex items-center gap-2">Pengeluaran</h3>
                             <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2">
-                                <button v-for="(total, kat) in categoryTotalsPengeluaran" :key="kat" @click="openModal('category', kat, 'Pengeluaran')" class="w-full flex justify-between p-3 bg-slate-50 hover:bg-rose-50 rounded-xl transition-all hover:shadow-sm hover:-translate-y-0.5 text-left">
+                                <button v-for="(total, kat) in categoryTotalsPengeluaran" :key="kat" @click="openModal('category', kat, 'Pengeluaran')" class="w-full flex justify-between p-3 bg-slate-50 hover:bg-rose-50 rounded-xl transition-all hover:shadow-sm hover:-translate-y-0.5 text-left border border-slate-100">
                                     <span class="font-bold text-sm text-slate-700">{{ kat }}</span>
                                     <span class="font-extrabold text-rose-600">- Rp {{ formatRupiah(total) }}</span>
                                 </button>
@@ -188,18 +191,18 @@
         <!-- ========================================== -->
         <div v-else-if="activeTab === 'cicilan'" key="cicilan" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div class="absolute right-[-10px] top-[-10px] opacity-10 text-rose-500"><svg class="w-32 h-32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-                    <p class="text-xs font-bold text-slate-500 uppercase z-10 relative">Total Sisa Hutang</p>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest z-10 relative">Total Sisa Hutang</p>
                     <h3 class="text-3xl font-extrabold text-rose-600 mt-2 z-10 relative">Rp {{ formatRupiah(totalHutangAktif) }}</h3>
                 </div>
-                <div class="bg-blue-50 p-6 rounded-3xl shadow-sm border border-blue-100 relative overflow-hidden group hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-blue-50 p-6 rounded-3xl shadow-sm border border-blue-100 relative overflow-hidden group hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div class="absolute right-4 top-4 text-blue-500 bg-white p-2 rounded-xl shadow-sm group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">💳</div>
                     <p class="text-xs font-bold text-blue-500 uppercase tracking-widest">Kredivo</p>
                     <h3 class="text-2xl font-extrabold text-slate-800 mt-4">Rp {{ formatRupiah(hutangKredivoTotal) }}</h3>
                     <p class="text-xs text-slate-500 mt-1">Sisa bayar: <span class="font-bold text-rose-500">Rp {{ formatRupiah(hutangKredivoSisa) }}</span></p>
                 </div>
-                <div class="bg-orange-50 p-6 rounded-3xl shadow-sm border border-orange-100 relative overflow-hidden group hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-orange-50 p-6 rounded-3xl shadow-sm border border-orange-100 relative overflow-hidden group hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div class="absolute right-4 top-4 text-orange-500 bg-white p-2 rounded-xl shadow-sm group-hover:scale-125 group-hover:-rotate-12 transition-all duration-500">🛍️</div>
                     <p class="text-xs font-bold text-orange-500 uppercase tracking-widest">SPaylater</p>
                     <h3 class="text-2xl font-extrabold text-slate-800 mt-4">Rp {{ formatRupiah(hutangSpaylaterTotal) }}</h3>
@@ -213,10 +216,10 @@
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                         <div class="flex justify-between items-start mb-6">
                             <div><h2 class="text-lg font-bold flex items-center gap-2 text-indigo-600">Simulasi Batas Aman</h2><p class="text-xs text-slate-500">Persentase sehat hutang bulanan.</p></div>
-                            <button @click="editBatasAman" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors">✏️ {{ persentaseBatasAman }}%</button>
+                            <button @click="editBatasAman" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors shadow-sm">✏️ {{ persentaseBatasAman }}%</button>
                         </div>
-                        <label class="text-[10px] uppercase font-bold text-slate-400 ml-1">Pemasukan / Gaji (Rp)</label>
-                        <input type="number" v-model="simulasiGaji" class="w-full text-xl font-bold px-4 py-3 bg-slate-50 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6 border border-slate-100 transition-all hover:bg-white">
+                        <label class="text-[10px] uppercase font-bold text-slate-400 ml-1 tracking-widest">Pemasukan / Gaji (Rp)</label>
+                        <input type="number" v-model="simulasiGaji" class="w-full text-xl font-bold px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6 transition-all hover:bg-white">
                         <div class="space-y-4">
                             <div class="flex justify-between items-center pb-3 border-b border-slate-100"><span class="text-sm font-semibold text-slate-600">Batas Max Hutang</span><span class="font-bold text-indigo-600">Rp {{ formatRupiah(batasAmanKredit) }}</span></div>
                             <div class="flex justify-between items-center pb-3 border-b border-slate-100"><span class="text-sm font-semibold text-slate-600">Sisa Hutang Berjalan</span><span class="font-bold text-rose-600">Rp {{ formatRupiah(totalHutangAktif) }}</span></div>
@@ -228,14 +231,13 @@
                         <div><h4 class="font-extrabold text-sm uppercase">Peringatan Kritis!</h4><p class="text-xs font-medium">Anda mengambil cicilan melebihi batas aman.</p></div>
                     </div>
                 </div>
-                <!-- CHART CICILAN -->
-                <div class="xl:col-span-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="flex flex-col items-center border-r border-slate-100 pr-0 md:pr-4"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Status Keseluruhan</h3><div class="relative h-[220px] w-full"><canvas id="cicilanStatusChart"></canvas></div></div>
-                    <div class="flex flex-col items-center"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Tren Beban Cicilan</h3><div class="relative h-[220px] w-full"><canvas id="cicilanTrendChart"></canvas></div></div>
+                <div class="xl:col-span-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8 hover:shadow-md transition-shadow">
+                    <div class="flex flex-col items-center border-r border-slate-100 pr-0 md:pr-4 hover:scale-[1.02] transition-transform duration-300"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Status Keseluruhan</h3><p class="text-[10px] text-slate-400 mb-4">Lunas vs Belum Lunas</p><div class="relative h-[220px] w-full"><canvas id="cicilanStatusChart"></canvas></div></div>
+                    <div class="flex flex-col items-center hover:scale-[1.02] transition-transform duration-300"><h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Tren Beban Cicilan</h3><p class="text-[10px] text-slate-400 mb-4">Sesuai Filter Waktu</p><div class="relative h-[220px] w-full"><canvas id="cicilanTrendChart"></canvas></div></div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
                 <div class="p-6 border-b border-slate-100"><h2 class="text-xl font-bold text-slate-800">Daftar Tagihan & Rincian Cicilan</h2></div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm min-w-[1000px]">
@@ -243,7 +245,7 @@
                             <tr><th class="px-6 py-4">Kode ID</th><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">Pembayaran</th><th class="px-6 py-4">Keterangan</th><th class="px-6 py-4 text-right">Total Nominal</th><th class="px-6 py-4 text-right">Sudah Dibayar</th><th class="px-6 py-4 text-right text-rose-500">Sisa Tagihan</th><th class="px-6 py-4 text-center">Status</th></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr v-for="(item, idx) in listCicilan" :key="idx" class="hover:bg-blue-50/50 transition-colors">
+                            <tr v-for="(item, idx) in listCicilan" :key="idx" class="hover:bg-blue-50/50 transition-colors duration-200">
                                 <td class="px-6 py-4 font-mono text-xs text-slate-400">{{ item.id }}</td>
                                 <td class="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{{ formatTanggalView(item.tanggal) }}</td>
                                 <td class="px-6 py-4 font-bold" :class="item.metodePembayaran.includes('Kredivo') ? 'text-blue-600' : 'text-orange-500'">{{ item.metodePembayaran }}</td>
@@ -256,9 +258,7 @@
                                     <span v-else class="text-xs text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg font-bold">LUNAS ✅</span>
                                 </td>
                             </tr>
-                            <tr v-if="listCicilan.length === 0">
-                                <td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">Bagus! Tidak ada riwayat hutang cicilan.</td>
-                            </tr>
+                            <tr v-if="listCicilan.length === 0"><td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">Bagus! Tidak ada riwayat hutang cicilan.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -269,22 +269,23 @@
         <!-- HALAMAN 3: TABUNGAN                        -->
         <!-- ========================================== -->
         <div v-else-if="activeTab === 'tabungan'" key="tabungan" class="space-y-6">
-            <div class="bg-emerald-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden hover:shadow-emerald-500/30 hover:-translate-y-1 transition-all">
+            <div class="bg-emerald-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden hover:shadow-emerald-500/30 hover:-translate-y-1 transition-all duration-300">
                 <div class="absolute right-[-20px] bottom-[-40px] opacity-20"><svg class="w-64 h-64 animate-[spin_60s_linear_infinite]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10.011 10.011 0 0012 2zm0 18a8 8 0 118-8 8.009 8.009 0 01-8 8z"/><path d="M12 6a.75.75 0 00-.75.75v1.5a2.251 2.251 0 00-1.5 2.125c0 1.25 1.008 2.25 2.25 2.25h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 0012 14.875v1.375a.75.75 0 001.5 0v-1.375a2.251 2.251 0 001.5-2.125c0-1.25-1.008-2.25-2.25-2.25h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0012 8.375V7A.75.75 0 0012 6z"/></svg></div>
                 <p class="text-sm font-bold text-emerald-100 uppercase tracking-widest relative z-10">Total Tabungan Terkumpul</p>
                 <h3 class="text-4xl font-extrabold mt-2 relative z-10">Rp {{ formatRupiah(totalTabungan) }}</h3>
+                <p class="text-xs text-emerald-200 mt-2 relative z-10">Dari seluruh riwayat (Mengabaikan filter waktu)</p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                <div class="xl:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div class="xl:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                     <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-2">Grafik Pertumbuhan Tabungan</h3>
                     <div class="relative h-[300px] w-full"><canvas id="tabunganChart"></canvas></div>
                 </div>
-                <div class="xl:col-span-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div class="xl:col-span-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                     <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-4 border-b pb-3">Riwayat Menabung</h3>
                     <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
                         <div v-for="(item, idx) in listTabungan" :key="idx" class="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100 hover:bg-emerald-50 hover:-translate-y-0.5 transition-all">
                             <div>
-                                <p class="font-bold text-sm text-slate-800">{{ item.keterangan || 'Menabung' }}</p>
+                                <p class="font-bold text-sm text-slate-800">{{ item.keterangan || 'Menabung' }} <span class="text-[10px] text-slate-400 font-mono ml-1">({{item.id}})</span></p>
                                 <p class="text-[10px] text-slate-500">{{ formatTanggalView(item.tanggal) }}</p>
                             </div>
                             <span class="font-extrabold text-emerald-600">+ Rp {{ formatRupiah(item.nominal) }}</span>
@@ -298,49 +299,51 @@
         <!-- HALAMAN 4: ANALISIS KESEHATAN KEUANGAN     -->
         <!-- ========================================== -->
         <div v-else-if="activeTab === 'analisis'" key="analisis" class="space-y-6">
-            <div class="bg-indigo-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
+            
+            <!-- KARTU STATUS DINAMIS (Warna berubah sesuai statusAnalisis.bgClass) -->
+            <div :class="statusAnalisis.bgClass" class="text-white p-8 rounded-3xl shadow-xl relative overflow-hidden transition-colors duration-700 hover:shadow-2xl hover:-translate-y-1">
                 <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4"><svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM9 11V7h2v4H9zm4 6V7h2v10h-2zm-8-4V7h2v6H5zm14 4h-2v-4h2v4z"/></svg></div>
-                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <p class="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">Status Kesehatan Finansial</p>
-                        <h2 class="text-4xl font-extrabold flex items-center gap-3">
-                            {{ statusAnalisis.statusKeseluruhan }}
-                            <span v-if="statusAnalisis.statusKeseluruhan === 'Sehat & Optimal'" class="text-2xl bg-emerald-500/20 text-emerald-400 p-2 rounded-xl">🟢</span>
-                            <span v-else-if="statusAnalisis.statusKeseluruhan === 'Perlu Perhatian (Waspada)'" class="text-2xl bg-orange-500/20 text-orange-400 p-2 rounded-xl">🟡</span>
-                            <span v-else class="text-2xl bg-rose-500/20 text-rose-400 p-2 rounded-xl">🔴</span>
-                        </h2>
-                        <p class="text-sm text-indigo-200 mt-2 max-w-xl">Laporan analitik berbasis instrumen algoritma profil risiko keuangan. Data dihimpun dari rasio hutang dan arus kas operasional Anda.</p>
+                <div class="relative z-10">
+                    <p class="text-xs font-bold text-white/70 uppercase tracking-widest mb-1">Status Kesehatan Finansial</p>
+                    <h2 class="text-4xl font-extrabold flex items-center gap-3 drop-shadow-md">
+                        {{ statusAnalisis.statusKeseluruhan }}
+                    </h2>
+                    <!-- KETERANGAN ANALISIS FORMAL & TERPERINCI -->
+                    <div class="mt-4 pt-4 border-t border-white/20">
+                        <p class="text-sm font-medium leading-relaxed opacity-95">
+                            {{ statusAnalisis.deskripsi }}
+                        </p>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <!-- CHART ANALISIS BAR -->
-                <div class="xl:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div class="xl:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                     <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-2 text-center">Komparasi Pilar Finansial</h3>
-                    <p class="text-[10px] text-slate-400 mb-6 text-center">Pendapatan vs Pengeluaran vs Hutang</p>
+                    <p class="text-[10px] text-slate-400 mb-6 text-center">Pendapatan vs Pengeluaran vs Hutang Aktif</p>
                     <div class="relative h-[250px] w-full"><canvas id="radarAnalysisChart"></canvas></div>
                 </div>
 
                 <!-- LAPORAN ADVISOR -->
-                <div class="xl:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                <div class="xl:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6 hover:shadow-md transition-shadow">
                     <h3 class="text-lg font-extrabold text-slate-800 border-b border-slate-100 pb-3">Laporan Rekomendasi Eksekutif</h3>
                     
-                    <div v-if="statusAnalisis.anjuran.length > 0" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
-                        <h4 class="text-sm font-bold text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-2">✅ Anjuran Strategis</h4>
+                    <div v-if="statusAnalisis.anjuran.length > 0" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
+                        <h4 class="text-sm font-bold text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-2">✅ Rekomendasi Strategis</h4>
                         <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.anjuran" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> {{ item }}</li></ul>
                     </div>
-                    <div v-if="statusAnalisis.peringatan.length > 0" class="bg-orange-50 border border-orange-100 rounded-2xl p-5">
-                        <h4 class="text-sm font-bold text-orange-700 uppercase tracking-widest mb-3 flex items-center gap-2">⚠️ Area Perhatian</h4>
-                        <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.peringatan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-orange-500 mt-0.5">•</span> {{ item }}</li></ul>
+                    <div v-if="statusAnalisis.peringatan.length > 0" class="bg-amber-50 border border-amber-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
+                        <h4 class="text-sm font-bold text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-2">⚠️ Peringatan Risiko</h4>
+                        <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.peringatan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-amber-500 mt-0.5">•</span> {{ item }}</li></ul>
                     </div>
-                    <div v-if="statusAnalisis.larangan.length > 0" class="bg-rose-50 border border-rose-100 rounded-2xl p-5">
-                        <h4 class="text-sm font-bold text-rose-700 uppercase tracking-widest mb-3 flex items-center gap-2">🚫 Restriksi / Larangan</h4>
+                    <div v-if="statusAnalisis.larangan.length > 0" class="bg-rose-50 border border-rose-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
+                        <h4 class="text-sm font-bold text-rose-700 uppercase tracking-widest mb-3 flex items-center gap-2">🚫 Tindakan Terlarang</h4>
                         <ul class="space-y-2"><li v-for="(item, idx) in statusAnalisis.larangan" :key="idx" class="text-sm text-slate-700 flex items-start gap-2"><span class="text-rose-500 mt-0.5">•</span> {{ item }}</li></ul>
                     </div>
                     
                     <div v-if="statusAnalisis.anjuran.length === 0 && statusAnalisis.peringatan.length === 0 && statusAnalisis.larangan.length === 0" class="text-center py-8">
-                        <p class="text-slate-500">Belum ada data finansial yang memadai untuk dianalisis pada periode ini.</p>
+                        <p class="text-slate-500">Data finansial belum memadai untuk menghasilkan analisis pada periode ini.</p>
                     </div>
                 </div>
             </div>
@@ -363,10 +366,10 @@
                     <div class="flex justify-between border-t border-slate-200 pt-3"><span class="font-bold text-slate-700">SISA HUTANG</span><span class="font-extrabold text-rose-600 text-lg">Rp {{ formatRupiah(modalBayar.data.nominal - modalBayar.data.terbayar) }}</span></div>
                 </div>
                 <label class="text-[10px] uppercase font-bold text-slate-400 ml-1">Nominal Pembayaran (Rp)</label>
-                <input type="number" v-model="modalBayar.nominalInput" class="w-full text-xl font-bold px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6 mt-1">
+                <input type="number" v-model="modalBayar.nominalInput" class="w-full text-xl font-bold px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6 mt-1 transition-all hover:bg-slate-50">
                 <div class="flex gap-2">
                     <button @click="modalBayar.isOpen = false" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors">Batal</button>
-                    <button @click="prosesBayar" :disabled="isLoading" class="w-2/3 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2">
+                    <button @click="prosesBayar" :disabled="isLoading" class="w-2/3 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-md hover:-translate-y-0.5 transition-all">
                         <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>Konfirmasi Bayar
                     </button>
                 </div>
@@ -398,8 +401,8 @@
                                 <td class="px-6 py-4 text-right font-bold" :class="item.jenis === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'">Rp {{ formatRupiah(item.nominal) }}</td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button @click="siapkanEdit(item)" class="p-1.5 bg-orange-100 text-orange-600 hover:bg-orange-200 rounded-md">✏️</button>
-                                        <button @click="hapusData(item)" class="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-md">🗑️</button>
+                                        <button @click="siapkanEdit(item)" class="p-1.5 bg-orange-100 text-orange-600 hover:bg-orange-200 rounded-md transition-colors">✏️</button>
+                                        <button @click="hapusData(item)" class="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-md transition-colors">🗑️</button>
                                     </div>
                                 </td>
                             </tr>
@@ -422,27 +425,18 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        // ==========================================
-        // GANTI LINK DI BAWAH INI DENGAN MILIK ANDA
-        // ==========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbxn8tiMuUue4ghyMx-YZgo1iaPsuSAc8IAHuO9htx63Pwux04AX7a6yqV2BJOXP_q26qg/exec"; 
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; 
         
-        // Cek Login Protection
+        // Security Check
         onMounted(() => {
-            if(!localStorage.getItem('ff_token')) {
-                window.location.href = 'index.html'; 
-            } else {
-                fetchData();
-            }
+            if(!localStorage.getItem('ff_token')) { window.location.href = 'index.html'; } 
+            else { fetchData(); }
         });
 
-        const logout = () => {
-            localStorage.removeItem('ff_token');
-            window.location.href = 'index.html';
-        };
+        const logout = () => { localStorage.removeItem('ff_token'); window.location.href = 'index.html'; };
 
-        // Sistem Notifikasi (Toast)
+        // Notification System
         const notif = ref({ show: false, message: '', type: 'success' });
         const showNotif = (msg, type = 'success') => {
             notif.value = { show: true, message: msg, type: type };
@@ -456,10 +450,7 @@ createApp({
         const activeTab = ref(localStorage.getItem('financeFlow_activeTab') || 'dashboard');
         watch(activeTab, (newTab) => { localStorage.setItem('financeFlow_activeTab', newTab); });
         
-        const periods = [
-            { label: 'Hari Ini', val: '1' }, { label: '1 Bulan', val: '30' },
-            { label: '3 Bulan', val: '90' }, { label: '6 Bulan', val: '180' }, { label: '1 Tahun', val: '365' },
-        ];
+        const periods = [{ label: 'Hari Ini', val: '1' }, { label: '1 Bulan', val: '30' }, { label: '3 Bulan', val: '90' }, { label: '6 Bulan', val: '180' }, { label: '1 Tahun', val: '365' }];
 
         const isEditing = ref(false); const editId = ref(null); const oldDataRef = ref(null);
         const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: 'Lainnya', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
@@ -475,7 +466,7 @@ createApp({
 
         const resetForm = () => { form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: 'Lainnya', keterangan: '', metodePembayaran: 'Cash', nominal: '' }; isEditing.value = false; editId.value = null; oldDataRef.value = null; };
 
-        // ================= COMPUTED =================
+        // ================= COMPUTED PROPERTIES =================
         const filteredData = computed(() => {
             const now = new Date(); const pastDate = new Date(); pastDate.setDate(now.getDate() - parseInt(filterWaktu.value));
             return dataTransaksi.value.filter(item => { const itemDate = new Date(item.tanggal); return itemDate >= pastDate && itemDate <= now; });
@@ -503,29 +494,40 @@ createApp({
         const batasAmanKredit = computed(() => Number(simulasiGaji.value) * (Number(persentaseBatasAman.value)/100));
         const sisaKuotaKredit = computed(() => batasAmanKredit.value - totalHutangAktif.value);
 
-        // ANALISIS
+        // ================= ALGORITMA ROBO-ADVISOR (ANALISIS) =================
         const statusAnalisis = computed(() => {
             const inc = totalPemasukanFilter.value || 0; const exp = totalPengeluaranFilter.value || 0; const debt = totalHutangAktif.value || 0;
-            let anjuran = []; let peringatan = []; let larangan = []; let statusKeseluruhan = 'Sehat & Optimal';
-            if (inc === 0 && exp === 0) return { statusKeseluruhan: 'Tidak Ada Data', anjuran, peringatan, larangan };
+            let anjuran = []; let peringatan = []; let larangan = []; 
+            let statusKeseluruhan = 'Sehat & Optimal'; let bgClass = 'bg-blue-600'; let deskripsi = '';
+            
+            if (inc === 0 && exp === 0) return { statusKeseluruhan: 'Tidak Ada Data', anjuran, peringatan, larangan, deskripsi: 'Sistem belum menerima data transaksi yang cukup pada periode yang difilter untuk melakukan perhitungan komprehensif.', bgClass: 'bg-slate-700' };
+            
             const rasioHutang = inc > 0 ? (debt / inc) * 100 : (debt > 0 ? 100 : 0);
             const rasioPengeluaran = inc > 0 ? (exp / inc) * 100 : (exp > 0 ? 100 : 0);
 
-            if (rasioHutang > 40) {
-                statusKeseluruhan = 'Kritis (Defisit)'; peringatan.push(`Rasio hutang ekstrem (${rasioHutang.toFixed(1)}%).`); larangan.push("Dilarang mengambil kredit baru sebelum rasio < 30%."); anjuran.push("Segera lunasi hutang berbunga tinggi.");
-            } else if (rasioHutang > 30) {
-                statusKeseluruhan = 'Waspada'; peringatan.push(`Beban hutang (${rasioHutang.toFixed(1)}%) melampaui batas aman (30%).`); larangan.push("Hindari cicilan konsumtif.");
-            } else { anjuran.push(`Rasio hutang sehat (${rasioHutang.toFixed(1)}%).`); }
-
-            if (rasioPengeluaran > 80) {
-                if(statusKeseluruhan === 'Sehat & Optimal') statusKeseluruhan = 'Waspada';
-                peringatan.push(`Pengeluaran operasional menggerus ${rasioPengeluaran.toFixed(1)}% pendapatan.`); anjuran.push("Pangkas segera anggaran hiburan dan gaya hidup.");
-            } else if (rasioPengeluaran <= 60 && inc > 0) { anjuran.push(`Arus kas surplus. ${ (100 - rasioPengeluaran).toFixed(1) }% pendapatan berhasil dipertahankan.`); }
-            if (exp > inc) { statusKeseluruhan = 'Kritis (Defisit)'; peringatan.push("PERINGATAN: Total pengeluaran melampaui pendapatan."); larangan.push("Jangan gunakan hutang untuk menutupi biaya harian."); }
-            return { statusKeseluruhan, anjuran, peringatan, larangan };
+            if (exp > inc) {
+                statusKeseluruhan = 'Kritis (Defisit Likuiditas)'; bgClass = 'bg-rose-600';
+                deskripsi = `Kondisi finansial Anda saat ini mengalami defisit. Total pengeluaran (Rp ${formatRupiah(exp)}) melampaui pendapatan operasional (Rp ${formatRupiah(inc)}). Risiko menggerus nilai tabungan sangat tinggi.`;
+                peringatan.push("Pengeluaran bulanan lebih besar dari pendapatan (Defisit)."); larangan.push("Dilarang keras menggunakan limit kredit (Kredivo/SPaylater) untuk menutupi kebutuhan pokok.");
+            } else if (rasioHutang > 40) {
+                statusKeseluruhan = 'Kritis (Beban Hutang)'; bgClass = 'bg-rose-600';
+                deskripsi = `Rasio beban hutang Anda sangat tinggi mencapai ${rasioHutang.toFixed(1)}% dari pendapatan kotor. Proporsi ini melampaui ambang batas toleransi sistem finansial yang sehat.`;
+                peringatan.push(`Rasio hutang berada pada level ekstrem (${rasioHutang.toFixed(1)}%). Risiko gagal bayar meningkat.`); larangan.push("Dilarang keras mengambil penambahan fasilitas kredit baru sebelum persentase ini turun."); anjuran.push("Segera restrukturisasi dan fokus lunasi hutang dengan suku bunga paling tinggi.");
+            } else if (rasioHutang > 30 || rasioPengeluaran > 70) {
+                statusKeseluruhan = 'Perlu Perhatian (Waspada)'; bgClass = 'bg-amber-500';
+                deskripsi = `Keuangan Anda perlu direkalkulasi. ${rasioHutang > 30 ? `Beban hutang (${rasioHutang.toFixed(1)}%) mulai menekan anggaran.` : ''} ${rasioPengeluaran > 70 ? `Biaya operasional Anda agresif menyita ${rasioPengeluaran.toFixed(1)}% dana.` : ''} Ruang gerak untuk proteksi darurat dan investasi semakin sempit.`;
+                if(rasioHutang > 30) peringatan.push("Persentase hutang mendekati ambang batas ideal (Max 30%).");
+                if(rasioPengeluaran > 70) peringatan.push("Kapasitas menabung sangat minim karena tingginya pengeluaran berjalan.");
+                anjuran.push("Lakukan audit arus kas. Kurangi alokasi dana pada kategori kebutuhan tersier atau gaya hidup.");
+            } else {
+                statusKeseluruhan = 'Sehat & Optimal'; bgClass = 'bg-blue-600';
+                deskripsi = `Profil keuangan Anda tergolong prima. Anda berhasil menjaga pengeluaran pada tingkat efisien (${rasioPengeluaran.toFixed(1)}%) dengan kontrol hutang yang luar biasa terkendali (${rasioHutang.toFixed(1)}%).`;
+                anjuran.push("Pertahankan disiplin eksekusi anggaran ini."); anjuran.push("Manfaatkan kelebihan sisa arus kas bulanan untuk memperbesar alokasi portofolio tabungan (aset likuid).");
+            }
+            return { statusKeseluruhan, anjuran, peringatan, larangan, deskripsi, bgClass };
         });
 
-        // ================= HELPERS & API =================
+        // ================= FUNGSI CRUD & API =================
         const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
         const formatTanggalView = (isoString) => { if(!isoString) return '-'; return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(isoString)); };
         
@@ -538,9 +540,8 @@ createApp({
                     const dInc = dataTransaksi.value.filter(d => d.jenis === 'Pemasukan');
                     if(dInc.length > 0) simulasiGaji.value = dInc.reduce((a,b) => a + Number(b.nominal), 0) / (dInc.length || 1);
                 }
-                await nextTick(); renderChartsForActiveTab(); 
-                if(modal.value.isOpen) refreshModalData(); 
-            } catch (e) { showNotif("Gagal terhubung ke database", "error"); } 
+                await nextTick(); renderChartsForActiveTab(); if(modal.value.isOpen) refreshModalData(); 
+            } catch (e) { showNotif("Gagal terhubung ke database server", "error"); } 
         };
 
         const simpanData = async () => {
@@ -551,32 +552,28 @@ createApp({
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); 
                 const result = await res.json();
-                if(result.status === 'success'){
-                    showNotif(isEditing.value ? "Data berhasil di-update! ✅" : "Data berhasil disimpan! ✅", 'success');
-                    resetForm(); await fetchData(); 
-                } else { showNotif("Gagal menyimpan data", "error"); }
-            } catch (e) { showNotif("Gagal memproses!", "error"); } finally { isLoading.value = false; }
+                if(result.status === 'success'){ showNotif(isEditing.value ? "Update tersimpan di sistem! ✅" : "Data berhasil dicatat! ✅", 'success'); resetForm(); await fetchData(); } 
+                else { showNotif("Gagal menyimpan rincian", "error"); }
+            } catch (e) { showNotif("Tidak ada respons dari server", "error"); } finally { isLoading.value = false; }
         };
 
         const editBatasAman = () => {
-            const newLimit = prompt("Persentase batas aman (contoh 30 untuk 30%):", persentaseBatasAman.value);
-            if(newLimit && !isNaN(newLimit) && newLimit > 0 && newLimit <= 100) { persentaseBatasAman.value = Number(newLimit); localStorage.setItem('financeFlow_batasAman', newLimit); }
+            const newLimit = prompt("Atur persentase batas aman (1-100):", persentaseBatasAman.value);
+            if(newLimit && !isNaN(newLimit) && newLimit > 0 && newLimit <= 100) { persentaseBatasAman.value = Number(newLimit); localStorage.setItem('financeFlow_batasAman', newLimit); showNotif("Persentase batas aman diperbarui", "success"); }
         };
 
         const bukaModalBayar = (item) => { modalBayar.value.data = item; modalBayar.value.nominalInput = item.nominal - item.terbayar; modalBayar.value.isOpen = true; };
         
         const prosesBayar = async () => {
             const nominal = Number(modalBayar.value.nominalInput);
-            if(nominal <= 0) return showNotif("Nominal tidak valid!", "error");
+            if(nominal <= 0) return showNotif("Nominal tidak boleh kosong!", "error");
             isLoading.value = true;
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'pay', id: modalBayar.value.data.id, nominalBayar: nominal }) }); 
                 const result = await res.json();
-                if(result.status === 'success'){
-                    showNotif(`Pembayaran Rp ${formatRupiah(nominal)} berhasil diproses! ✅`, 'success');
-                    modalBayar.value.isOpen = false; await fetchData(); 
-                } else { showNotif("Gagal mengupdate database", "error"); }
-            } catch (e) { showNotif("Terjadi kesalahan sistem", "error"); } finally { isLoading.value = false; }
+                if(result.status === 'success'){ showNotif(`Pembayaran Rp ${formatRupiah(nominal)} diproses! ✅`, 'success'); modalBayar.value.isOpen = false; await fetchData(); } 
+                else { showNotif("Sistem gagal memproses pembayaran", "error"); }
+            } catch (e) { showNotif("Kesalahan komunikasi server", "error"); } finally { isLoading.value = false; }
         };
 
         const setFilter = async (val) => { filterWaktu.value = val; await nextTick(); renderChartsForActiveTab(); };
@@ -584,25 +581,22 @@ createApp({
 
         const siapkanEdit = (item) => { closeModal(); activeTab.value = 'dashboard'; isEditing.value = true; editId.value = item.id; oldDataRef.value = item; const d = new Date(item.tanggal); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); form.value = { tanggal: d.toISOString().slice(0, 16), jenis: item.jenis, kategori: item.kategori, nominal: item.nominal, keterangan: item.keterangan, metodePembayaran: item.metodePembayaran || 'Cash' }; setTimeout(() => { document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' }); }, 100); };
         const batalEdit = () => { resetForm(); };
-        
         const hapusData = async (item) => { 
-            if(!confirm(`Yakin hapus transaksi Rp ${formatRupiah(item.nominal)}?`)) return; 
+            if(!confirm(`Hapus permanen transaksi Rp ${formatRupiah(item.nominal)}?`)) return; 
             isLoading.value = true; 
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: item.id }) }); 
                 const result = await res.json();
-                if(result.status === 'success'){
-                    showNotif("Data berhasil dihapus 🗑️", 'success');
-                    await fetchData(); 
-                } else { showNotif("Gagal menghapus data", "error"); }
-            } catch (e) { showNotif("Terjadi kesalahan sistem", "error"); } finally { isLoading.value = false; } 
+                if(result.status === 'success'){ showNotif("Satu arsip data dihapus 🗑️", 'success'); await fetchData(); } 
+                else { showNotif("Penghapusan ditolak server", "error"); }
+            } catch (e) { showNotif("Gagal merespons", "error"); } finally { isLoading.value = false; } 
         };
 
         const openModal = (type, title, jenis = 'Pengeluaran') => { modal.value.type = type; modal.value.title = title; modal.value.jenis = jenis; refreshModalData(); modal.value.isOpen = true; };
         const refreshModalData = () => { let f = []; if(modal.value.type === 'category') f = filteredData.value.filter(d => d.jenis === modal.value.jenis && d.kategori === modal.value.title); modal.value.data = f.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)); };
         const closeModal = () => { modal.value.isOpen = false; };
 
-        // ================= RENDER GRAFIK =================
+        // ================= ENGINE CHART.JS =================
         const renderChartsForActiveTab = () => {
             if(activeTab.value === 'dashboard') { renderDashboardCharts(); } 
             else if (activeTab.value === 'cicilan') { renderCicilanCharts(); }
@@ -615,13 +609,13 @@ createApp({
             if(ctx1) {
                 if (chartIncExp) chartIncExp.destroy();
                 const inc = totalPemasukanFilter.value; const exp = totalPengeluaranFilter.value; const hd = inc > 0 || exp > 0;
-                chartIncExp = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Pemasukan', 'Pengeluaran'], datasets: [{ data: hd ? [inc, exp] : [1, 1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } } });
+                chartIncExp = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Pemasukan', 'Pengeluaran'], datasets: [{ data: hd ? [inc, exp] : [1, 1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } } });
             }
             const ctx2 = document.getElementById('dashboardPaymentDistChart');
             if(ctx2) {
                 if (chartDist) chartDist.destroy();
                 const d = [paymentTotals.value['Cash'] || 0, paymentTotals.value['Kredit Kredivo'] || 0, paymentTotals.value['Kredit SPaylater'] || 0]; const hd = d.some(v => v > 0);
-                chartDist = new Chart(ctx2.getContext('2d'), { type: 'doughnut', data: { labels: ['Cash', 'Kredivo', 'SPaylater'], datasets: [{ data: hd ? d : [1, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#f97316'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } } });
+                chartDist = new Chart(ctx2.getContext('2d'), { type: 'doughnut', data: { labels: ['Cash', 'Kredivo', 'SPaylater'], datasets: [{ data: hd ? d : [1, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#f97316'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } } });
             }
         };
 
@@ -631,9 +625,8 @@ createApp({
                 if(chartStatusCicilan) chartStatusCicilan.destroy();
                 const dibayarParsial = listCicilan.value.filter(d => d.status === 'Belum Lunas').reduce((a,b) => a + Number(b.terbayar), 0);
                 const lunasTotal = listCicilan.value.filter(d => d.status === 'Lunas').reduce((a,b) => a + Number(b.nominal), 0);
-                const totalTuntas = lunasTotal + dibayarParsial;
-                const blm = totalHutangAktif.value; const hd = totalTuntas > 0 || blm > 0;
-                chartStatusCicilan = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Sudah Dibayar', 'Sisa Hutang'], datasets: [{ data: hd ? [totalTuntas, blm] : [1,1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } } });
+                const totalTuntas = lunasTotal + dibayarParsial; const blm = totalHutangAktif.value; const hd = totalTuntas > 0 || blm > 0;
+                chartStatusCicilan = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Sudah Dibayar', 'Sisa Hutang'], datasets: [{ data: hd ? [totalTuntas, blm] : [1,1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } } });
             }
             const ctx2 = document.getElementById('cicilanTrendChart');
             if(ctx2) {
