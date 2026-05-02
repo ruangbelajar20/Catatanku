@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinanceFlow - Dashboard</title>
+    <title>MyFinanceFlow - Dashboard AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,7 +27,6 @@
         .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
         .modal-enter-from, .modal-leave-to { opacity: 0; }
         
-        /* Notifikasi Rata Tengah */
         .toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         .toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
     </style>
@@ -61,7 +60,7 @@
                 <button @click="changeTab('dashboard')" :class="activeTab === 'dashboard' ? 'bg-white shadow-md text-blue-600 scale-105 z-10' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'" class="flex-1 px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap">📊 Dashboard</button>
                 <button @click="changeTab('cicilan')" :class="activeTab === 'cicilan' ? 'bg-white shadow-md text-orange-600 scale-105 z-10' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'" class="flex-1 px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap">💳 Cicilan</button>
                 <button @click="changeTab('tabungan')" :class="activeTab === 'tabungan' ? 'bg-white shadow-md text-emerald-600 scale-105 z-10' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'" class="flex-1 px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap">💰 Tabungan</button>
-                <button @click="changeTab('analisis')" :class="activeTab === 'analisis' ? 'bg-white shadow-md text-indigo-600 scale-105 z-10' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'" class="flex-1 px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap">📈 Analisis</button>
+                <button @click="changeTab('analisis')" :class="activeTab === 'analisis' ? 'bg-white shadow-md text-indigo-600 scale-105 z-10' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'" class="flex-1 px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap">📈 Analisis AI</button>
             </div>
             <button @click="bukaDatabase" class="hidden xl:flex bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-900 shadow-md hover:-translate-y-1 transition-all duration-300 items-center gap-2">
                 🗄️ Database
@@ -164,7 +163,6 @@
                                     <span class="font-bold text-sm text-slate-700">{{ kat }}</span>
                                     <span class="font-extrabold text-emerald-600">+ Rp {{ formatRupiah(total) }}</span>
                                 </button>
-                                <p v-if="Object.keys(categoryTotalsPemasukan).length === 0" class="text-xs text-slate-400 text-center py-4">Data kosong.</p>
                             </div>
                         </div>
                         <div class="bg-white p-5 rounded-3xl border border-slate-200 hover:shadow-md transition-shadow">
@@ -174,7 +172,6 @@
                                     <span class="font-bold text-sm text-slate-700">{{ kat }}</span>
                                     <span class="font-extrabold text-rose-600">- Rp {{ formatRupiah(total) }}</span>
                                 </button>
-                                <p v-if="Object.keys(categoryTotalsPengeluaran).length === 0" class="text-xs text-slate-400 text-center py-4">Data kosong.</p>
                             </div>
                         </div>
                     </div>
@@ -250,7 +247,6 @@
                                     <span v-else class="text-xs text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg font-bold shadow-sm">LUNAS ✅</span>
                                 </td>
                             </tr>
-                            <tr v-if="listCicilan.length === 0"><td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">Bagus! Tidak ada riwayat hutang cicilan.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -288,7 +284,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- HALAMAN 4: ANALISIS KESEHATAN KEUANGAN     -->
+        <!-- HALAMAN 4: ANALISIS AI (OTOMATIS)          -->
         <!-- ========================================== -->
         <div v-else-if="activeTab === 'analisis'" key="analisis" class="space-y-6">
             
@@ -307,24 +303,32 @@
                 </div>
             </div>
 
-            <!-- FITUR AI BARU: ANALISIS SERVER-SIDE -->
-            <div class="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 rounded-3xl shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="text-white z-10">
-                    <h3 class="text-lg font-bold flex items-center gap-2">✨ Penasihat AI Pribadi</h3>
-                    <p class="text-xs text-indigo-200">Dapatkan evaluasi komprehensif dan strategi instan berbasis kecerdasan buatan (Gemini AI).</p>
+            <!-- KOTAK HASIL AI (OTOMATIS LOADING) -->
+            <transition name="page" mode="out-in">
+                <!-- Jika Sedang Loading -->
+                <div v-if="isAnalyzingAI" key="loading" class="bg-white p-12 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-6 min-h-[300px]">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-indigo-500 rounded-full blur-xl opacity-20 animate-pulse"></div>
+                        <span class="relative block animate-spin border-4 border-indigo-100 border-t-indigo-600 rounded-full w-14 h-14"></span>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-lg font-extrabold text-slate-800 animate-pulse">Menganalisis Data Profil Anda...</h3>
+                        <p class="text-sm text-slate-500 mt-1">Robo-Advisor AI sedang menyusun laporan komprehensif.</p>
+                    </div>
                 </div>
-                <button @click="analisisDenganAI" :disabled="isAnalyzingAI" class="z-10 bg-white text-indigo-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap">
-                    <span v-if="isAnalyzingAI" class="animate-spin border-2 border-indigo-900 border-t-transparent rounded-full w-4 h-4"></span>
-                    {{ isAnalyzingAI ? 'Menganalisis Data...' : 'Mulai Analisis AI' }}
-                </button>
-            </div>
 
-            <!-- KOTAK HASIL AI -->
-            <transition name="page">
-                <div v-if="aiAnalysisResult" class="bg-white p-8 rounded-3xl shadow-sm border-t-4 border-t-indigo-600 prose prose-sm max-w-none text-slate-700 leading-relaxed">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">🤖 Laporan Eksekutif AI</h3>
-                    <div v-html="aiAnalysisResult"></div>
-                    <button @click="aiAnalysisResult = ''" class="mt-6 text-xs font-bold text-rose-500 hover:underline">Tutup Laporan AI</button>
+                <!-- Jika Selesai Loading dan Ada Hasil -->
+                <div v-else-if="aiAnalysisResult" key="result" class="bg-white p-8 rounded-3xl shadow-sm border-t-4 border-t-indigo-600 prose prose-sm max-w-none text-slate-700 leading-relaxed">
+                    <h3 class="text-xl font-extrabold text-indigo-900 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                        <span class="text-2xl">✨</span> Laporan Eksekutif AI (Gemini)
+                    </h3>
+                    <div v-html="aiAnalysisResult" class="space-y-4"></div>
+                </div>
+
+                <!-- Fallback / Error AI -->
+                <div v-else key="error" class="bg-slate-50 p-8 rounded-3xl shadow-sm border border-slate-200 text-center">
+                    <p class="text-slate-500">Tidak dapat memuat laporan AI saat ini. Pastikan koneksi internet stabil dan server merespons.</p>
+                    <button @click="analisisDenganAI" class="mt-4 text-sm font-bold text-indigo-600 hover:underline">Coba Ulang Analisis</button>
                 </div>
             </transition>
 
@@ -355,9 +359,7 @@
 
     </transition>
 
-    <!-- ========================================== -->
-    <!-- MODALS (BAYAR & CRUD)                      -->
-    <!-- ========================================== -->
+    <!-- MODAL PEMBAYARAN PARSIAL -->
     <transition name="modal">
         <div v-if="modalBayar.isOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="modalBayar.isOpen = false"></div>
@@ -381,6 +383,7 @@
         </div>
     </transition>
 
+    <!-- MODAL DAFTAR RINCIAN (CRUD) -->
     <transition name="modal">
         <div v-if="modal.isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModal"></div>
@@ -429,8 +432,8 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        const API_URL = "https://script.google.com/macros/s/AKfycbxrZKra7tvWt2hoEQYG9uycWNVDeKtg3pNMl5cmNc0qxGSCRZ0DBNuiVnHkHf2WlLZQ/exec"; // WAJIB GANTI
-        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; // WAJIB GANTI
+        const API_URL = "https://script.google.com/macros/s/AKfycbx0kpGV0U9QWYs0FSQYbIQaHiPjtcPnGj1Yi3pHD1V8WE9uzKpcUA3V3AvPT9vSQ1fNdg/exec"; 
+        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; 
         
         onMounted(() => {
             if(!localStorage.getItem('ff_token')) { window.location.href = 'index.html'; } 
@@ -517,7 +520,7 @@ createApp({
         const batasAmanKredit = computed(() => Number(simulasiGaji.value) * (Number(persentaseBatasAman.value)/100));
         const sisaKuotaKredit = computed(() => batasAmanKredit.value - totalHutangAktif.value);
 
-        // ================= ALGORITMA ROBO-ADVISOR =================
+        // ================= ALGORITMA ROBO-ADVISOR (Lokal) =================
         const statusAnalisis = computed(() => {
             const inc = totalPemasukanFilter.value || 0; const exp = totalPengeluaranFilter.value || 0; const debt = totalHutangAktif.value || 0;
             let anjuran = []; let peringatan = []; let larangan = []; 
@@ -534,7 +537,7 @@ createApp({
                 peringatan.push("Pengeluaran bulanan lebih besar dari pendapatan (Negatif Cash Flow)."); larangan.push("Dilarang keras menggunakan limit kredit (Kredivo/SPaylater) untuk menutupi defisit kebutuhan pokok."); anjuran.push("Segera hentikan pengeluaran diskresioner (hiburan, tersier) dan evaluasi ulang pengeluaran tetap Anda.");
             } else if (rasioHutang > 40) {
                 statusKeseluruhan = 'Kritis (Beban Hutang)'; bgClass = 'bg-rose-600';
-                deskripsi = `Rasio beban hutang Anda berada pada level yang sangat tidak sehat, mencapai ${rasioHutang.toFixed(1)}% dari total pendapatan kotor. Proporsi ini telah melampaui ambang batas toleransi risiko sistem finansial.`;
+                deskripsi = `Rasio beban hutang Anda sangat tinggi mencapai ${rasioHutang.toFixed(1)}% dari total pendapatan kotor. Proporsi ini telah melampaui ambang batas toleransi risiko sistem finansial.`;
                 peringatan.push(`Rasio hutang sangat tinggi (${rasioHutang.toFixed(1)}%). Risiko gagal bayar dan stres finansial meningkat signifikan.`); larangan.push("Dilarang keras mengambil penambahan fasilitas kredit konsumtif baru."); anjuran.push("Lakukan restrukturisasi. Fokuskan surplus likuiditas untuk melunasi hutang dengan suku bunga efektif tahunan paling tinggi.");
             } else if (rasioHutang > 30 || rasioPengeluaran > 70) {
                 statusKeseluruhan = 'Perlu Perhatian (Waspada)'; bgClass = 'bg-amber-500';
@@ -550,8 +553,13 @@ createApp({
             return { statusKeseluruhan, anjuran, peringatan, larangan, deskripsi, bgClass };
         });
 
-        // ================= FUNGSI AI API (BACKEND) =================
+        // ================= FUNGSI AI API (OTOMATIS) =================
         const analisisDenganAI = async () => {
+            if(totalPemasukanFilter.value === 0 && totalPengeluaranFilter.value === 0) {
+                aiAnalysisResult.value = "<p>Data tidak memadai untuk dianalisis oleh AI pada periode ini.</p>";
+                return;
+            }
+
             isAnalyzingAI.value = true;
             aiAnalysisResult.value = '';
 
@@ -572,12 +580,11 @@ createApp({
                 const data = await res.json();
                 if(data.status === 'success') {
                      aiAnalysisResult.value = data.data;
-                     showNotif("Laporan AI berhasil dimuat! 🤖", "success");
                 } else {
-                     showNotif(data.message || "Gagal mendapatkan analisis AI", "error");
+                     aiAnalysisResult.value = "<p class='text-rose-500 font-bold'>Gagal mendapatkan laporan dari AI: " + (data.message || "Unknown error") + "</p>";
                 }
             } catch(err) {
-                showNotif("Koneksi ke server AI terputus.", "error");
+                aiAnalysisResult.value = "<p class='text-rose-500 font-bold'>Koneksi ke server AI terputus. Pastikan Apps Script Anda sudah diberikan izin (Authorization).</p>";
             } finally {
                 isAnalyzingAI.value = false;
             }
@@ -595,7 +602,15 @@ createApp({
                     const dInc = dataTransaksi.value.filter(d => d.jenis === 'Pemasukan');
                     if(dInc.length > 0) simulasiGaji.value = dInc.reduce((a,b) => a + Number(b.nominal), 0) / (dInc.length || 1);
                 }
-                await nextTick(); renderChartsForActiveTab(); if(modal.value.isOpen) refreshModalData(); 
+                await nextTick(); 
+                renderChartsForActiveTab(); 
+                if(modal.value.isOpen) refreshModalData(); 
+                
+                // Jika sedang di tab analisis, otomatis fetch AI saat data selesai dimuat
+                if(activeTab.value === 'analisis' && !aiAnalysisResult.value) {
+                    analisisDenganAI();
+                }
+
             } catch (e) { showNotif("Gagal terhubung ke database server", "error"); } 
         };
 
@@ -612,7 +627,7 @@ createApp({
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); 
                 const result = await res.json();
-                if(result.status === 'success'){ showNotif(isEditing.value ? "Update tersimpan di sistem! ✅" : "Data berhasil dicatat! ✅", 'success'); resetForm(); await fetchData(); } 
+                if(result.status === 'success'){ showNotif(isEditing.value ? "Update tersimpan di sistem!" : "Data berhasil dicatat!", 'success'); resetForm(); await fetchData(); } 
                 else { showNotif("Gagal menyimpan rincian", "error"); }
             } catch (e) { showNotif("Tidak ada respons dari server", "error"); } finally { isLoading.value = false; }
         };
@@ -630,13 +645,33 @@ createApp({
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'pay', id: modalBayar.value.data.id, nominalBayar: nominal }) }); 
                 const result = await res.json();
-                if(result.status === 'success'){ showNotif(`Pembayaran Rp ${formatRupiah(nominal)} diproses! ✅`, 'success'); modalBayar.value.isOpen = false; await fetchData(); } 
+                if(result.status === 'success'){ showNotif(`Pembayaran diproses!`, 'success'); modalBayar.value.isOpen = false; await fetchData(); } 
                 else { showNotif("Sistem gagal memproses pembayaran", "error"); }
             } catch (e) { showNotif("Kesalahan komunikasi server", "error"); } finally { isLoading.value = false; }
         };
 
-        const setFilter = async (val) => { filterWaktu.value = val; await nextTick(); renderChartsForActiveTab(); };
-        const changeTab = async (tabName) => { activeTab.value = tabName; setTimeout(() => { renderChartsForActiveTab(); }, 300); };
+        const setFilter = async (val) => { 
+            filterWaktu.value = val; 
+            await nextTick(); 
+            renderChartsForActiveTab(); 
+            // Jika ganti filter di tab analisis, panggil ulang AI
+            if(activeTab.value === 'analisis') {
+                analisisDenganAI();
+            }
+        };
+
+        const changeTab = async (tabName) => { 
+            activeTab.value = tabName; 
+            setTimeout(() => { 
+                renderChartsForActiveTab(); 
+                
+                // AUTO TRIGGER AI JIKA MASUK TAB ANALISIS
+                if(tabName === 'analisis' && !aiAnalysisResult.value) {
+                    analisisDenganAI();
+                }
+
+            }, 250); 
+        };
 
         const siapkanEdit = (item) => { 
             closeModal(); activeTab.value = 'dashboard'; isEditing.value = true; editId.value = item.id; oldDataRef.value = item; 
@@ -656,7 +691,7 @@ createApp({
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: item.id }) }); 
                 const result = await res.json();
-                if(result.status === 'success'){ showNotif("Satu arsip data dihapus 🗑️", 'success'); await fetchData(); } 
+                if(result.status === 'success'){ showNotif("Arsip dihapus", 'success'); await fetchData(); } 
                 else { showNotif("Penghapusan ditolak server", "error"); }
             } catch (e) { showNotif("Gagal merespons", "error"); } finally { isLoading.value = false; } 
         };
