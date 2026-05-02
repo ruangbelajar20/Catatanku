@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tambahan Plugin Datalabels untuk Persentase -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -91,7 +93,7 @@
                 </form>
             </div>
 
-            <!-- List Kategori (Bisa di Klik) -->
+            <!-- List Kategori -->
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <h2 class="text-sm font-bold mb-4 uppercase tracking-wider text-slate-500">Total Per Kategori <span class="text-[10px] font-normal lowercase bg-slate-100 px-2 py-0.5 rounded-md">(Klik untuk rincian)</span></h2>
                 <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
@@ -140,7 +142,7 @@
                 </button>
             </div>
 
-            <!-- GRAFIK AREA (3 Kolom) -->
+            <!-- GRAFIK AREA (2 Kolom) -->
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h2 class="text-lg font-bold">Analisis Dashboard</h2>
@@ -152,35 +154,28 @@
                     </select>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Grafik 1: Kategori (Bar) -->
                     <div class="flex flex-col items-center">
                         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Tren Kategori</h3>
-                        <div class="relative h-[200px] w-full"><canvas id="categoryChart"></canvas></div>
+                        <div class="relative h-[220px] w-full"><canvas id="categoryChart"></canvas></div>
                     </div>
                     
-                    <!-- Grafik 2: Keterangan (Doughnut) -->
+                    <!-- Grafik 2: Pembayaran (Doughnut dengan Persentase) -->
                     <div class="flex flex-col items-center">
-                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Sebaran Keterangan</h3>
-                        <div class="relative h-[200px] w-full"><canvas id="keteranganChart"></canvas></div>
-                    </div>
-
-                    <!-- Grafik 3: Pembayaran (Doughnut) -->
-                    <div class="flex flex-col items-center md:col-span-2 xl:col-span-1">
                         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Sebaran Pembayaran</h3>
-                        <div class="relative h-[200px] w-full"><canvas id="paymentDistChart"></canvas></div>
+                        <div class="relative h-[220px] w-full"><canvas id="paymentDistChart"></canvas></div>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- UNIVERSAL MODAL (Untuk Rincian Kategori & Metode Pembayaran) -->
+    <!-- UNIVERSAL MODAL -->
     <div v-if="modal.isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModal"></div>
         <div class="relative bg-white w-full max-w-4xl max-h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
             
-            <!-- Header Modal -->
             <div class="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div>
                     <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">
@@ -194,7 +189,6 @@
                 </button>
             </div>
             
-            <!-- Body Modal (Table) -->
             <div class="overflow-y-auto flex-1 p-0">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm min-w-[600px]">
@@ -225,7 +219,6 @@
                                 <td :colspan="4" class="px-6 py-12 text-center text-slate-400 font-medium">Tidak ada transaksi ditemukan.</td>
                             </tr>
                         </tbody>
-                        <!-- Footer Total Modal -->
                         <tfoot class="bg-slate-50 border-t border-slate-200 sticky bottom-0 z-10" v-if="modal.data.length > 0">
                             <tr>
                                 <td :colspan="3" class="px-6 py-4 text-right font-bold text-slate-600 uppercase text-xs">Total Keseluruhan</td>
@@ -241,6 +234,9 @@
 </div>
 
 <script>
+// Registrasi plugin datalabels secara global
+Chart.register(ChartDataLabels);
+
 const { createApp, ref, onMounted, computed } = Vue;
 
 const getCurrentDateTimeLocal = () => {
@@ -258,17 +254,11 @@ createApp({
         const isLoading = ref(false);
         const filterWaktu = ref('30'); 
         
-        // State Universal Modal
         const modal = ref({
-            isOpen: false,
-            type: '', // 'category' atau 'payment'
-            title: '',
-            data: [],
-            total: 0
+            isOpen: false, type: '', title: '', data: [], total: 0
         });
 
         let chartCat = null;
-        let chartKet = null;
         let chartDist = null;
 
         const form = ref({
@@ -299,14 +289,6 @@ createApp({
                 totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal);
             });
             return Object.fromEntries(Object.entries(totals).sort(([,a],[,b]) => b-a));
-        });
-
-        const keteranganTotals = computed(() => {
-            const totals = {};
-            filteredData.value.filter(d => d.jenis === 'Pengeluaran' && d.keterangan).forEach(d => {
-                totals[d.keterangan] = (totals[d.keterangan] || 0) + Number(d.nominal);
-            });
-            return totals;
         });
 
         const paymentTotals = computed(() => {
@@ -352,16 +334,12 @@ createApp({
         const openModal = (type, title) => {
             modal.value.type = type;
             modal.value.title = title;
-            
             let filtered = [];
-            // Filter data khusus untuk pengeluaran (karena kita analisis pengeluaran)
             if(type === 'payment') {
                 filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && (d.metodePembayaran || 'Cash') === title);
             } else if (type === 'category') {
                 filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && d.kategori === title);
             }
-            
-            // Urutkan dari yang terbaru
             modal.value.data = filtered.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
             modal.value.total = filtered.reduce((acc, curr) => acc + Number(curr.nominal), 0);
             modal.value.isOpen = true;
@@ -372,7 +350,6 @@ createApp({
         // ================= FUNGSI GRAFIK =================
         const renderSemuaChart = () => {
             renderCategoryChart();
-            renderKeteranganChart();
             renderPaymentDistChart();
         };
 
@@ -389,24 +366,15 @@ createApp({
                         backgroundColor: '#3b82f6', borderRadius: 4
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
-            });
-        };
-
-        const renderKeteranganChart = () => {
-            const ctx = document.getElementById('keteranganChart');
-            if(!ctx) return;
-            if (chartKet) chartKet.destroy();
-            chartKet = new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(keteranganTotals.value).length ? Object.keys(keteranganTotals.value) : ['Kosong'],
-                    datasets: [{
-                        data: Object.values(keteranganTotals.value).length ? Object.values(keteranganTotals.value) : [1],
-                        backgroundColor: ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'], borderWidth: 0, hoverOffset: 4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        // Nonaktifkan persentase untuk grafik bar kategori
+                        datalabels: { display: false } 
+                    }, 
+                    scales: { x: { display: false } } 
+                }
             });
         };
 
@@ -422,8 +390,8 @@ createApp({
                 paymentTotals.value['Kredit SPaylater'] || 0
             ];
 
-            // Jika semua 0, tampilkan grafik kosong
-            const chartData = data.some(v => v > 0) ? data : [1, 0, 0];
+            const hasData = data.some(v => v > 0);
+            const chartData = hasData ? data : [1, 0, 0];
 
             chartDist = new Chart(ctx.getContext('2d'), {
                 type: 'doughnut',
@@ -436,8 +404,21 @@ createApp({
                     }]
                 },
                 options: { 
-                    responsive: true, maintainAspectRatio: false, cutout: '70%',
-                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } 
+                    responsive: true, maintainAspectRatio: false, cutout: '65%',
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 12 } } },
+                        // Konfigurasi Persentase
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 13 },
+                            formatter: (value, context) => {
+                                if (!hasData || value === 0) return ''; // Jangan tampilkan teks jika tidak ada data/nol
+                                let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                let percentage = (value * 100 / sum).toFixed(1) + "%";
+                                return percentage;
+                            }
+                        }
+                    } 
                 }
             });
         };
