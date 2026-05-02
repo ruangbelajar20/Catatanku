@@ -17,6 +17,9 @@
         ::-webkit-scrollbar-track { background: #f8fafc; }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Animasi berdenyut untuk peringatan batas aman */
+        @keyframes customPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .8; transform: scale(1.02); box-shadow: 0 0 15px rgba(225, 29, 72, 0.5); } }
+        .animate-danger-pulse { animation: customPulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12 relative">
@@ -28,18 +31,19 @@
         <div>
             <h1 class="text-2xl font-extrabold text-blue-600 tracking-tight">FinanceFlow <span class="text-slate-800">Pro</span></h1>
         </div>
-        <div class="flex bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto">
-            <button @click="changeTab('dashboard')" :class="activeTab === 'dashboard' ? 'bg-white shadow-md text-blue-600' : 'text-slate-500 hover:text-slate-700'" class="flex-1 md:px-8 py-2.5 rounded-xl text-sm font-bold transition-all">📊 Dashboard</button>
-            <button @click="changeTab('cicilan')" :class="activeTab === 'cicilan' ? 'bg-white shadow-md text-orange-600' : 'text-slate-500 hover:text-slate-700'" class="flex-1 md:px-8 py-2.5 rounded-xl text-sm font-bold transition-all">💳 Manajemen Cicilan</button>
+        <div class="flex bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto overflow-x-auto">
+            <button @click="changeTab('dashboard')" :class="activeTab === 'dashboard' ? 'bg-white shadow-md text-blue-600' : 'text-slate-500 hover:text-slate-700'" class="flex-1 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</button>
+            <button @click="changeTab('cicilan')" :class="activeTab === 'cicilan' ? 'bg-white shadow-md text-orange-600' : 'text-slate-500 hover:text-slate-700'" class="flex-1 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap">💳 Cicilan</button>
+            <button @click="changeTab('tabungan')" :class="activeTab === 'tabungan' ? 'bg-white shadow-md text-emerald-600' : 'text-slate-500 hover:text-slate-700'" class="flex-1 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap">💰 Tabungan</button>
         </div>
     </nav>
 
-    <!-- FILTER WAKTU GLOBAL (Tampil di kedua tab) -->
+    <!-- FILTER WAKTU GLOBAL (Tampil di semua tab) -->
     <div class="flex justify-center md:justify-end">
         <div class="inline-flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto w-full md:w-auto">
             <button v-for="p in periods" :key="p.val" @click="setFilter(p.val)"
                     :class="filterWaktu === p.val ? 'bg-slate-800 shadow-md text-white' : 'text-slate-500 hover:bg-slate-50'"
-                    class="px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all uppercase tracking-wider flex-1 md:flex-none">
+                    class="px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all uppercase tracking-wider flex-1 md:flex-none whitespace-nowrap">
                 {{ p.label }}
             </button>
         </div>
@@ -49,7 +53,6 @@
     <!-- HALAMAN 1: DASHBOARD UTAMA                 -->
     <!-- ========================================== -->
     <div v-if="activeTab === 'dashboard'" class="animate-fade-in space-y-6">
-        <!-- HEADER DASHBOARD -->
         <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200 gap-4">
             <div><p class="text-sm text-slate-500 font-medium">Ringkasan Arus Kas Sesuai Filter</p></div>
             <div class="flex gap-4">
@@ -66,7 +69,7 @@
         </header>
 
         <main class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <!-- SIDEBAR FORM (Sama seperti sebelumnya) -->
+            <!-- SIDEBAR FORM -->
             <section class="xl:col-span-4" id="form-section">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative">
                     <div v-if="isEditing" class="absolute top-0 left-0 w-full bg-orange-100 text-orange-700 text-xs font-bold py-1.5 text-center uppercase tracking-widest">Mode Edit Data</div>
@@ -75,33 +78,35 @@
                         {{ isEditing ? 'Edit Transaksi' : 'Catat Transaksi' }}
                     </h2>
                     <form @submit.prevent="simpanData" class="space-y-4">
-                        <div class="flex gap-2 p-1.5 bg-slate-100 rounded-2xl">
-                            <button type="button" @click="form.jenis = 'Pengeluaran'" :class="form.jenis === 'Pengeluaran' ? 'bg-white shadow-md text-rose-600' : 'text-slate-500'" class="flex-1 py-2 rounded-xl text-sm font-bold uppercase">Keluar</button>
-                            <button type="button" @click="form.jenis = 'Pemasukan'" :class="form.jenis === 'Pemasukan' ? 'bg-white shadow-md text-emerald-600' : 'text-slate-500'" class="flex-1 py-2 rounded-xl text-sm font-bold uppercase">Masuk</button>
+                        <div class="flex gap-1.5 p-1 bg-slate-100 rounded-2xl">
+                            <button type="button" @click="form.jenis = 'Pengeluaran'" :class="form.jenis === 'Pengeluaran' ? 'bg-white shadow-md text-rose-600' : 'text-slate-500'" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase">Keluar</button>
+                            <button type="button" @click="form.jenis = 'Pemasukan'" :class="form.jenis === 'Pemasukan' ? 'bg-white shadow-md text-emerald-600' : 'text-slate-500'" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase">Masuk</button>
+                            <!-- Tabungan Input -->
+                            <button type="button" @click="form.jenis = 'Tabungan'" :class="form.jenis === 'Tabungan' ? 'bg-white shadow-md text-blue-600' : 'text-slate-500'" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase">Tabung</button>
                         </div>
                         <div>
                             <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Nominal (Rp)</label>
-                            <input type="number" v-model="form.nominal" required class="w-full text-2xl font-bold px-4 py-3 bg-slate-50 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="0">
+                            <input type="number" v-model="form.nominal" required class="w-full text-2xl font-bold px-4 py-3 bg-slate-50 rounded-2xl outline-none">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div class="col-span-2">
                                 <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Waktu Transaksi</label>
                                 <input type="datetime-local" v-model="form.tanggal" required class="w-full px-4 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold">
                             </div>
-                            <div>
+                            <div v-if="form.jenis !== 'Tabungan'">
                                 <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Kategori</label>
                                 <input type="text" v-model="form.kategori" required class="w-full px-4 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold">
                             </div>
-                            <div>
-                                <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Pembayaran</label>
-                                <select v-model="form.metodePembayaran" class="w-full px-3 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold cursor-pointer">
+                            <div v-if="form.jenis !== 'Tabungan'">
+                                <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Metode</label>
+                                <select v-model="form.metodePembayaran" class="w-full px-3 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold">
                                     <option value="Cash">💵 Cash</option>
                                     <option value="Kredit Kredivo">💳 Kredivo</option>
                                     <option value="Kredit SPaylater">🛍️ SPaylater</option>
                                 </select>
                             </div>
                             <div class="col-span-2">
-                                <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Keterangan / Rincian</label>
+                                <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Keterangan / Tujuan</label>
                                 <input type="text" v-model="form.keterangan" class="w-full px-4 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-semibold">
                             </div>
                         </div>
@@ -125,8 +130,8 @@
                         <div class="relative h-[220px] w-full"><canvas id="incomeExpenseChart"></canvas></div>
                     </div>
                     <div class="flex flex-col items-center">
-                        <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-4">Sebaran Pembayaran</h3>
-                        <div class="relative h-[220px] w-full"><canvas id="paymentDistChart"></canvas></div>
+                        <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-4">Sebaran Pemasukan</h3>
+                        <div class="relative h-[220px] w-full"><canvas id="incomeDistChart"></canvas></div>
                     </div>
                 </div>
 
@@ -160,123 +165,217 @@
     <!-- ========================================== -->
     <div v-if="activeTab === 'cicilan'" class="animate-fade-in space-y-6">
         
-        <!-- CARD SUMMARY CICILAN -->
+        <!-- CARD SUMMARY CICILAN DENGAN ICON -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-l-rose-500">
-                <p class="text-xs font-bold text-slate-500 uppercase">Total Hutang Aktif</p>
-                <h3 class="text-3xl font-extrabold text-rose-600 mt-2">Rp {{ formatRupiah(totalHutangAktif) }}</h3>
-                <p class="text-[10px] text-slate-400 mt-1">Belum dilunasi</p>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] opacity-10 text-rose-500">
+                    <svg class="w-32 h-32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-xs font-bold text-slate-500 uppercase z-10 relative">Total Sisa Hutang</p>
+                <h3 class="text-3xl font-extrabold text-rose-600 mt-2 z-10 relative">Rp {{ formatRupiah(totalHutangAktif) }}</h3>
+                <p class="text-[10px] text-slate-400 mt-1 z-10 relative">Seluruh akumulasi belum lunas</p>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-l-blue-500">
-                <p class="text-xs font-bold text-slate-500 uppercase">Hutang Kredivo</p>
-                <h3 class="text-2xl font-extrabold text-slate-800 mt-2">Rp {{ formatRupiah(hutangKredivo) }}</h3>
+            
+            <div class="bg-blue-50 p-6 rounded-3xl shadow-sm border border-blue-100 relative overflow-hidden group">
+                <div class="absolute right-4 top-4 text-blue-500 bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                    💳 <!-- Icon Credit Card -->
+                </div>
+                <p class="text-xs font-bold text-blue-500 uppercase tracking-widest">Kredivo</p>
+                <h3 class="text-2xl font-extrabold text-slate-800 mt-4">Rp {{ formatRupiah(hutangKredivoTotal) }}</h3>
+                <p class="text-xs text-slate-500 mt-1">Sisa bayar: <span class="font-bold text-rose-500">Rp {{ formatRupiah(hutangKredivoSisa) }}</span></p>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-l-orange-500">
-                <p class="text-xs font-bold text-slate-500 uppercase">Hutang SPaylater</p>
-                <h3 class="text-2xl font-extrabold text-slate-800 mt-2">Rp {{ formatRupiah(hutangSpaylater) }}</h3>
+            
+            <div class="bg-orange-50 p-6 rounded-3xl shadow-sm border border-orange-100 relative overflow-hidden group">
+                <div class="absolute right-4 top-4 text-orange-500 bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                    🛍️ <!-- Icon Bag -->
+                </div>
+                <p class="text-xs font-bold text-orange-500 uppercase tracking-widest">SPaylater</p>
+                <h3 class="text-2xl font-extrabold text-slate-800 mt-4">Rp {{ formatRupiah(hutangSpaylaterTotal) }}</h3>
+                <p class="text-xs text-slate-500 mt-1">Sisa bayar: <span class="font-bold text-rose-500">Rp {{ formatRupiah(hutangSpaylaterSisa) }}</span></p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
             
-            <!-- SIMULASI BATAS AMAN -->
-            <div class="xl:col-span-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
-                <h2 class="text-lg font-bold mb-2 flex items-center gap-2 text-indigo-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    Simulasi Batas Aman Kredit
-                </h2>
-                <p class="text-xs text-slate-500 mb-6">Aturan sehat finansial: Max cicilan 30% dari pemasukan.</p>
-                
-                <label class="text-[10px] uppercase font-bold text-slate-400 ml-1">Pemasukan Bulanan Anda (Rp)</label>
-                <input type="number" v-model="simulasiGaji" class="w-full text-xl font-bold px-4 py-3 bg-slate-50 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6">
-                
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                        <span class="text-sm font-semibold text-slate-600">Batas Aman (30%)</span>
-                        <span class="font-bold text-indigo-600">Rp {{ formatRupiah(batasAmanKredit) }}</span>
+            <!-- SIMULASI BATAS AMAN & NOTIFIKASI BERDENYUT -->
+            <div class="xl:col-span-4 space-y-4">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-lg font-bold flex items-center gap-2 text-indigo-600">
+                                Simulasi Batas Aman
+                            </h2>
+                            <p class="text-xs text-slate-500">Persentase sehat hutang bulanan.</p>
+                        </div>
+                        <button @click="editBatasAman" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-indigo-100 flex items-center gap-1">
+                            ✏️ {{ persentaseBatasAman }}%
+                        </button>
                     </div>
-                    <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                        <span class="text-sm font-semibold text-slate-600">Total Cicilan Aktif</span>
-                        <span class="font-bold text-rose-600">Rp {{ formatRupiah(totalHutangAktif) }}</span>
+                    
+                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-1">Pemasukan / Gaji Bulanan (Rp)</label>
+                    <input type="number" v-model="simulasiGaji" class="w-full text-xl font-bold px-4 py-3 bg-slate-50 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6 border border-slate-100">
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                            <span class="text-sm font-semibold text-slate-600">Batas Max Hutang</span>
+                            <span class="font-bold text-indigo-600">Rp {{ formatRupiah(batasAmanKredit) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                            <span class="text-sm font-semibold text-slate-600">Sisa Hutang Berjalan</span>
+                            <span class="font-bold text-rose-600">Rp {{ formatRupiah(totalHutangAktif) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-sm font-extrabold text-slate-800">Ruang Cicilan Baru</span>
+                            <span class="text-lg font-extrabold" :class="sisaKuotaKredit < 0 ? 'text-rose-600' : 'text-emerald-600'">
+                                Rp {{ formatRupiah(sisaKuotaKredit) }}
+                            </span>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center pt-2">
-                        <span class="text-sm font-extrabold text-slate-800">Sisa Kuota Cicilan</span>
-                        <span class="text-lg font-extrabold" :class="sisaKuotaKredit < 0 ? 'text-rose-600' : 'text-emerald-600'">
-                            {{ sisaKuotaKredit < 0 ? 'Melebihi Batas!' : 'Rp ' + formatRupiah(sisaKuotaKredit) }}
-                        </span>
+                </div>
+
+                <!-- NOTIFIKASI MELEBIHI BATAS (ANIMASI RED PULSE) -->
+                <div v-if="sisaKuotaKredit < 0" class="animate-danger-pulse bg-rose-100 border-2 border-rose-500 text-rose-700 p-4 rounded-3xl flex items-center gap-3 shadow-lg shadow-rose-200">
+                    <span class="text-3xl">⚠️</span>
+                    <div>
+                        <h4 class="font-extrabold text-sm uppercase">Peringatan Kritis!</h4>
+                        <p class="text-xs font-medium">Anda mengambil cicilan melebihi batas aman finansial Anda. Segera lunasi hutang yang ada.</p>
                     </div>
                 </div>
             </div>
 
             <!-- GRAFIK CICILAN -->
             <div class="xl:col-span-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Grafik Selisih Hutang vs Lunas -->
                 <div class="flex flex-col items-center border-r border-slate-100 pr-0 md:pr-4">
-                    <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Status Hutang Keseluruhan</h3>
-                    <p class="text-[10px] text-slate-400 mb-4">Lunas vs Belum Lunas</p>
+                    <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Status Keseluruhan (Rupiah)</h3>
+                    <p class="text-[10px] text-slate-400 mb-4">Lunas vs Belum Lunas (Sesuai Filter)</p>
                     <div class="relative h-[220px] w-full"><canvas id="cicilanStatusChart"></canvas></div>
                 </div>
-                <!-- Grafik Tren -->
                 <div class="flex flex-col items-center">
-                    <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Tren Penambahan Hutang</h3>
-                    <p class="text-[10px] text-slate-400 mb-4">Akumulasi sesuai filter waktu</p>
+                    <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-2">Tren Penambahan Hutang Baru</h3>
+                    <p class="text-[10px] text-slate-400 mb-4">Berdasarkan Filter Waktu</p>
                     <div class="relative h-[220px] w-full"><canvas id="cicilanTrendChart"></canvas></div>
                 </div>
             </div>
         </div>
 
-        <!-- TABEL RINCIAN CICILAN -->
+        <!-- TABEL RINCIAN CICILAN DENGAN TOMBOL BAYAR -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div class="p-6 border-b border-slate-100">
                 <h2 class="text-xl font-bold text-slate-800">Daftar Tagihan & Rincian Cicilan</h2>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm min-w-[800px]">
+                <table class="w-full text-left text-sm min-w-[900px]">
                     <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
                         <tr>
                             <th class="px-6 py-4">Waktu</th>
-                            <th class="px-6 py-4">Metode</th>
+                            <th class="px-6 py-4">Pembayaran</th>
                             <th class="px-6 py-4">Keterangan</th>
-                            <th class="px-6 py-4">Status</th>
-                            <th class="px-6 py-4 text-right">Nominal</th>
-                            <th class="px-6 py-4 text-center">Aksi</th>
+                            <th class="px-6 py-4 text-right">Total Nominal</th>
+                            <th class="px-6 py-4 text-right">Sudah Dibayar</th>
+                            <th class="px-6 py-4 text-right text-rose-500">Sisa Tagihan</th>
+                            <th class="px-6 py-4 text-center">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <tr v-for="(item, idx) in listCicilan" :key="idx" class="hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{{ formatTanggalView(item.tanggal) }}</td>
                             <td class="px-6 py-4 font-bold" :class="item.metodePembayaran.includes('Kredivo') ? 'text-blue-600' : 'text-orange-500'">{{ item.metodePembayaran }}</td>
-                            <td class="px-6 py-4 text-slate-600">{{ item.keterangan || item.kategori }}</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider" :class="item.status === 'Lunas' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'">
-                                    {{ item.status }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right font-extrabold text-slate-700">Rp {{ formatRupiah(item.nominal) }}</td>
+                            <td class="px-6 py-4 text-slate-600 font-medium">{{ item.keterangan || item.kategori }}</td>
+                            <td class="px-6 py-4 text-right font-bold text-slate-700">Rp {{ formatRupiah(item.nominal) }}</td>
+                            <td class="px-6 py-4 text-right font-bold text-emerald-600">Rp {{ formatRupiah(item.terbayar) }}</td>
+                            <td class="px-6 py-4 text-right font-extrabold text-rose-600">Rp {{ formatRupiah(item.nominal - item.terbayar) }}</td>
                             <td class="px-6 py-4 text-center">
-                                <button v-if="item.status === 'Belum Lunas'" @click="bayarCicilan(item)" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1 mx-auto" :disabled="isLoading">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Bayar
+                                <button v-if="item.status === 'Belum Lunas'" @click="bukaModalBayar(item)" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1 mx-auto" :disabled="isLoading">
+                                    💰 Bayar
                                 </button>
-                                <span v-else class="text-xs text-slate-400 font-bold">Tuntas ✅</span>
+                                <span v-else class="text-xs text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg font-bold">LUNAS ✅</span>
                             </td>
                         </tr>
                         <tr v-if="listCicilan.length === 0">
-                            <td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">Bagus! Tidak ada riwayat hutang cicilan di periode ini.</td>
+                            <td colspan="7" class="px-6 py-8 text-center text-slate-400 font-medium">Bagus! Tidak ada riwayat hutang cicilan di periode ini.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
 
-    <!-- UNIVERSAL MODAL CRUD (Tetap ada untuk Dashboard) -->
+    <!-- ========================================== -->
+    <!-- HALAMAN 3: TABUNGAN                        -->
+    <!-- ========================================== -->
+    <div v-if="activeTab === 'tabungan'" class="animate-fade-in space-y-6">
+        
+        <div class="bg-emerald-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden">
+            <div class="absolute right-[-20px] bottom-[-40px] opacity-20">
+                <svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10.011 10.011 0 0012 2zm0 18a8 8 0 118-8 8.009 8.009 0 01-8 8z"/><path d="M12 6a.75.75 0 00-.75.75v1.5a2.251 2.251 0 00-1.5 2.125c0 1.25 1.008 2.25 2.25 2.25h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 0012 14.875v1.375a.75.75 0 001.5 0v-1.375a2.251 2.251 0 001.5-2.125c0-1.25-1.008-2.25-2.25-2.25h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0012 8.375V7A.75.75 0 0012 6z"/></svg>
+            </div>
+            <p class="text-sm font-bold text-emerald-100 uppercase tracking-widest relative z-10">Total Tabungan Terkumpul</p>
+            <h3 class="text-4xl font-extrabold mt-2 relative z-10">Rp {{ formatRupiah(totalTabungan) }}</h3>
+            <p class="text-xs text-emerald-200 mt-2 relative z-10">Dari seluruh riwayat (Mengabaikan filter waktu)</p>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <!-- Grafik Pertumbuhan Tabungan -->
+            <div class="xl:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-2">Grafik Pertumbuhan Tabungan</h3>
+                <p class="text-[10px] text-slate-400 mb-6">Bulan ke Bulan</p>
+                <div class="relative h-[300px] w-full"><canvas id="tabunganChart"></canvas></div>
+            </div>
+
+            <!-- Riwayat Tabungan Terakhir -->
+            <div class="xl:col-span-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest mb-4 border-b pb-3">Riwayat Menabung</h3>
+                <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                    <div v-for="(item, idx) in listTabungan" :key="idx" class="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                        <div>
+                            <p class="font-bold text-sm text-slate-800">{{ item.keterangan || 'Menabung' }}</p>
+                            <p class="text-[10px] text-slate-500">{{ formatTanggalView(item.tanggal) }}</p>
+                        </div>
+                        <span class="font-extrabold text-emerald-600">+ Rp {{ formatRupiah(item.nominal) }}</span>
+                    </div>
+                    <div v-if="listTabungan.length === 0" class="text-center py-8">
+                        <p class="text-sm text-slate-400 font-medium">Belum ada catatan tabungan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL INPUT BAYAR CICILAN                  -->
+    <!-- ========================================== -->
+    <div v-if="modalBayar.isOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="modalBayar.isOpen = false"></div>
+        <div class="relative bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 animate-fade-in">
+            <h2 class="text-xl font-bold text-slate-800 mb-1">Bayar Cicilan</h2>
+            <p class="text-xs text-slate-500 mb-6 font-semibold">{{ modalBayar.data.keterangan || modalBayar.data.kategori }} via {{ modalBayar.data.metodePembayaran }}</p>
+            
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3 mb-6 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">Total Tagihan Awal</span><span class="font-bold">Rp {{ formatRupiah(modalBayar.data.nominal) }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Sudah Dibayar</span><span class="font-bold text-emerald-600">Rp {{ formatRupiah(modalBayar.data.terbayar) }}</span></div>
+                <div class="flex justify-between border-t border-slate-200 pt-3"><span class="font-bold text-slate-700">SISA HUTANG</span><span class="font-extrabold text-rose-600 text-lg">Rp {{ formatRupiah(modalBayar.data.nominal - modalBayar.data.terbayar) }}</span></div>
+            </div>
+
+            <label class="text-[10px] uppercase font-bold text-slate-400 ml-1">Nominal Pembayaran Saat Ini (Rp)</label>
+            <input type="number" v-model="modalBayar.nominalInput" class="w-full text-xl font-bold px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-6 mt-1">
+            
+            <div class="flex gap-2">
+                <button @click="modalBayar.isOpen = false" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">Batal</button>
+                <button @click="prosesBayar" :disabled="isLoading" class="w-2/3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-md flex justify-center items-center gap-2">
+                    <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                    Konfirmasi Bayar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UNIVERSAL MODAL CRUD (Dashboard) -->
     <div v-if="modal.isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModal"></div>
         <div class="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
             <div class="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center">
                 <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">
-                    Rincian <span :class="modal.jenis === 'Pemasukan' ? 'text-emerald-600 bg-emerald-100 px-3 py-1 rounded-lg' : 'text-rose-600 bg-rose-100 px-3 py-1 rounded-lg'">{{ modal.title }}</span>
+                    Rincian <span :class="modal.jenis === 'Pemasukan' ? 'text-emerald-600 bg-emerald-100 px-3 py-1' : 'text-rose-600 bg-rose-100 px-3 py-1'" class="rounded-lg">{{ modal.title }}</span>
                 </h2>
                 <button @click="closeModal" class="p-2 bg-slate-100 hover:bg-rose-100 hover:text-rose-600 rounded-full"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
@@ -307,7 +406,7 @@
 
 <script>
 Chart.register(ChartDataLabels);
-const { createApp, ref, onMounted, computed, nextTick, watch } = Vue;
+const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 const getCurrentDateTimeLocal = () => {
     const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -316,53 +415,82 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        const API_URL = "https://script.google.com/macros/s/AKfycbyAORl4VGlpvLxoy6IR6Gcf6uLEO2iOngBD7mX7Y9dQx9j0EfNT8G9Up--WU9lf5rWLBw/exec"; // Wajib Ganti!
+        const API_URL = "https://script.google.com/macros/s/AKfycbyPRYVF8g0CsEgPgva1eDGs42HINjL2thnVukv7S1cnEJlcY2dm-YiU1LiLDulqhFCa9g/exec"; // WAJIB DIGANTI!
         
         const dataTransaksi = ref([]);
         const isLoading = ref(false);
         const filterWaktu = ref('30'); 
-        const activeTab = ref('dashboard'); // State untuk tab navigasi
+        const activeTab = ref('dashboard');
         
         const periods = [
             { label: 'Hari Ini', val: '1' }, { label: '1 Bulan', val: '30' },
             { label: '3 Bulan', val: '90' }, { label: '6 Bulan', val: '180' }, { label: '1 Tahun', val: '365' },
         ];
 
+        // STATE FORM & EDIT
         const isEditing = ref(false); const editId = ref(null); const oldDataRef = ref(null);
+        const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: 'Lainnya', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
+        
+        // STATE MODAL
         const modal = ref({ isOpen: false, type: '', title: '', jenis: '', data: [], total: 0 });
-        const simulasiGaji = ref(5000000); // Default input simulasi
+        const modalBayar = ref({ isOpen: false, data: null, nominalInput: '' });
 
-        let chartIncExp = null; let chartDist = null; 
-        let chartStatusCicilan = null; let chartTrendCicilan = null;
+        // STATE SIMULASI CICILAN
+        const persentaseBatasAman = ref(localStorage.getItem('financeFlow_batasAman') || 30);
+        const simulasiGaji = ref(5000000); 
 
-        const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
-        const resetForm = () => { form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' }; isEditing.value = false; editId.value = null; oldDataRef.value = null; };
+        // VARIABEL CHART
+        let chartIncExp = null; let chartDist = null; let chartIncDist = null;
+        let chartStatusCicilan = null; let chartTrendCicilan = null; let chartTabunganIns = null;
 
-        // FILTER WAKTU UTAMA
+        const resetForm = () => { form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: 'Lainnya', keterangan: '', metodePembayaran: 'Cash', nominal: '' }; isEditing.value = false; editId.value = null; oldDataRef.value = null; };
+
+        // ================= COMPUTED DASHBOARD =================
         const filteredData = computed(() => {
             const now = new Date(); const pastDate = new Date(); pastDate.setDate(now.getDate() - parseInt(filterWaktu.value));
             return dataTransaksi.value.filter(item => { const itemDate = new Date(item.tanggal); return itemDate >= pastDate && itemDate <= now; });
         });
 
-        // DASHBOARD COMPUTED
         const totalPemasukanFilter = computed(() => filteredData.value.filter(d => d.jenis === 'Pemasukan').reduce((a, b) => a + Number(b.nominal), 0));
         const totalPengeluaranFilter = computed(() => filteredData.value.filter(d => d.jenis === 'Pengeluaran').reduce((a, b) => a + Number(b.nominal), 0));
         const categoryTotalsPengeluaran = computed(() => { const t = {}; filteredData.value.filter(d => d.jenis === 'Pengeluaran').forEach(d => { t[d.kategori] = (t[d.kategori] || 0) + Number(d.nominal); }); return Object.fromEntries(Object.entries(t).sort(([,a],[,b]) => b-a)); });
         const categoryTotalsPemasukan = computed(() => { const t = {}; filteredData.value.filter(d => d.jenis === 'Pemasukan').forEach(d => { t[d.kategori] = (t[d.kategori] || 0) + Number(d.nominal); }); return Object.fromEntries(Object.entries(t).sort(([,a],[,b]) => b-a)); });
         const paymentTotals = computed(() => { const t = {}; filteredData.value.filter(d => d.jenis === 'Pengeluaran').forEach(d => { const m = d.metodePembayaran || 'Cash'; t[m] = (t[m] || 0) + Number(d.nominal); }); return t; });
 
-        // CICILAN COMPUTED
-        const listCicilan = computed(() => {
-            return filteredData.value.filter(d => d.metodePembayaran && d.metodePembayaran.includes('Kredit')).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
-        });
-        const totalHutangAktif = computed(() => listCicilan.value.filter(d => d.status === 'Belum Lunas').reduce((a,b) => a + Number(b.nominal), 0));
-        const hutangKredivo = computed(() => listCicilan.value.filter(d => d.status === 'Belum Lunas' && d.metodePembayaran.includes('Kredivo')).reduce((a,b) => a + Number(b.nominal), 0));
-        const hutangSpaylater = computed(() => listCicilan.value.filter(d => d.status === 'Belum Lunas' && d.metodePembayaran.includes('SPaylater')).reduce((a,b) => a + Number(b.nominal), 0));
+        // ================= COMPUTED TABUNGAN =================
+        const listTabungan = computed(() => dataTransaksi.value.filter(d => d.jenis === 'Tabungan').sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)));
+        const totalTabungan = computed(() => listTabungan.value.reduce((a, b) => a + Number(b.nominal), 0));
         
-        // SIMULASI COMPUTED
-        const batasAmanKredit = computed(() => Number(simulasiGaji.value) * 0.3);
+        const tabunganPerBulan = computed(() => {
+            const groups = {};
+            // Sort ascending for chart
+            const data = [...listTabungan.value].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
+            data.forEach(d => {
+                const month = new Date(d.tanggal).toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+                groups[month] = (groups[month] || 0) + Number(d.nominal);
+            });
+            return groups;
+        });
+
+        // ================= COMPUTED CICILAN =================
+        const listCicilan = computed(() => filteredData.value.filter(d => d.metodePembayaran && d.metodePembayaran.includes('Kredit')).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)));
+        // Hutang dihitung dari Nominal dikurangi Terbayar
+        const totalHutangAktif = computed(() => listCicilan.value.filter(d => d.status === 'Belum Lunas').reduce((a,b) => a + (Number(b.nominal) - Number(b.terbayar)), 0));
+        
+        // Kredivo Breakdown
+        const dKredivo = computed(() => listCicilan.value.filter(d => d.status === 'Belum Lunas' && d.metodePembayaran.includes('Kredivo')));
+        const hutangKredivoTotal = computed(() => dKredivo.value.reduce((a,b) => a + Number(b.nominal), 0));
+        const hutangKredivoSisa = computed(() => dKredivo.value.reduce((a,b) => a + (Number(b.nominal) - Number(b.terbayar)), 0));
+        
+        // SPaylater Breakdown
+        const dSpaylater = computed(() => listCicilan.value.filter(d => d.status === 'Belum Lunas' && d.metodePembayaran.includes('SPaylater')));
+        const hutangSpaylaterTotal = computed(() => dSpaylater.value.reduce((a,b) => a + Number(b.nominal), 0));
+        const hutangSpaylaterSisa = computed(() => dSpaylater.value.reduce((a,b) => a + (Number(b.nominal) - Number(b.terbayar)), 0));
+        
+        const batasAmanKredit = computed(() => Number(simulasiGaji.value) * (Number(persentaseBatasAman.value)/100));
         const sisaKuotaKredit = computed(() => batasAmanKredit.value - totalHutangAktif.value);
 
+        // ================= HELPERS & API =================
         const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
         const formatTanggalView = (isoString) => { if(!isoString) return '-'; return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(isoString)); };
 
@@ -370,7 +498,6 @@ createApp({
             try { 
                 const res = await fetch(API_URL); dataTransaksi.value = await res.json(); 
                 if(dataTransaksi.value.length > 0) {
-                    // Set simulasi otomatis ke rata-rata pemasukan per bulan jika ada
                     const dInc = dataTransaksi.value.filter(d => d.jenis === 'Pemasukan');
                     if(dInc.length > 0) simulasiGaji.value = dInc.reduce((a,b) => a + Number(b.nominal), 0) / (dInc.length || 1);
                 }
@@ -381,79 +508,104 @@ createApp({
 
         const simpanData = async () => {
             if(!form.value.nominal) return alert("Masukkan nominal!");
+            if(form.value.jenis === 'Tabungan') { form.value.kategori = 'Tabungan'; form.value.metodePembayaran = 'Cash'; }
             isLoading.value = true;
             const payload = isEditing.value ? { action: 'update', id: editId.value, oldData: oldDataRef.value, data: form.value } : { action: 'create', data: form.value };
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); resetForm(); await fetchData(); } catch (e) { alert("Gagal memproses!"); } finally { isLoading.value = false; }
         };
 
-        const bayarCicilan = async (item) => {
-            if(!confirm(`Tandai LUNAS cicilan ${item.kategori} sejumlah Rp ${formatRupiah(item.nominal)}?`)) return;
+        const editBatasAman = () => {
+            const newLimit = prompt("Persentase batas aman (contoh 30 untuk 30%):", persentaseBatasAman.value);
+            if(newLimit && !isNaN(newLimit) && newLimit > 0 && newLimit <= 100) {
+                persentaseBatasAman.value = Number(newLimit);
+                localStorage.setItem('financeFlow_batasAman', newLimit);
+            }
+        };
+
+        // ==== FITUR BAYAR CICILAN ====
+        const bukaModalBayar = (item) => {
+            modalBayar.value.data = item;
+            modalBayar.value.nominalInput = item.nominal - item.terbayar; // Default diisi sisa pelunasan
+            modalBayar.value.isOpen = true;
+        };
+
+        const prosesBayar = async () => {
+            const nominal = Number(modalBayar.value.nominalInput);
+            if(nominal <= 0) return alert("Masukkan nominal yang valid!");
+            
             isLoading.value = true;
-            const updatedData = { ...item, status: 'Lunas' };
             try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', id: item.id, oldData: item, data: updatedData }) });
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'pay', id: modalBayar.value.data.id, nominalBayar: nominal }) });
+                modalBayar.value.isOpen = false;
                 await fetchData();
-            } catch (e) { alert("Gagal mengupdate status!"); } finally { isLoading.value = false; }
+            } catch (e) { alert("Gagal mengupdate pembayaran!"); } finally { isLoading.value = false; }
         };
 
         const setFilter = (val) => { filterWaktu.value = val; renderChartsForActiveTab(); };
         const changeTab = async (tabName) => { activeTab.value = tabName; await nextTick(); renderChartsForActiveTab(); };
 
+        // ==== FITUR CRUD UMUM ====
         const siapkanEdit = (item) => { closeModal(); activeTab.value = 'dashboard'; isEditing.value = true; editId.value = item.id; oldDataRef.value = item; const d = new Date(item.tanggal); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); form.value = { tanggal: d.toISOString().slice(0, 16), jenis: item.jenis, kategori: item.kategori, nominal: item.nominal, keterangan: item.keterangan, metodePembayaran: item.metodePembayaran || 'Cash' }; setTimeout(() => { document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' }); }, 100); };
         const batalEdit = () => { resetForm(); };
         const hapusData = async (item) => { if(!confirm(`Hapus transaksi Rp ${formatRupiah(item.nominal)}?`)) return; isLoading.value = true; try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: item.id }) }); await fetchData(); } catch (e) { alert("Gagal menghapus!"); } finally { isLoading.value = false; } };
-
         const openModal = (type, title, jenis = 'Pengeluaran') => { modal.value.type = type; modal.value.title = title; modal.value.jenis = jenis; refreshModalData(); modal.value.isOpen = true; };
         const refreshModalData = () => { let f = []; if(modal.value.type === 'category') f = filteredData.value.filter(d => d.jenis === modal.value.jenis && d.kategori === modal.value.title); modal.value.data = f.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)); };
         const closeModal = () => { modal.value.isOpen = false; };
 
-        // ==== RENDER GRAFIK BERDASARKAN TAB ====
+        // ================= RENDER GRAFIK =================
         const renderChartsForActiveTab = () => {
             if(activeTab.value === 'dashboard') { renderDashboardCharts(); } 
-            else { renderCicilanCharts(); }
+            else if (activeTab.value === 'cicilan') { renderCicilanCharts(); }
+            else if (activeTab.value === 'tabungan') { renderTabunganCharts(); }
         };
 
         const renderDashboardCharts = () => {
-            // Chart Rasio Pemasukan vs Pengeluaran
             const ctx1 = document.getElementById('incomeExpenseChart'); 
             if(ctx1) {
                 if (chartIncExp) chartIncExp.destroy();
-                const inc = totalPemasukanFilter.value; const exp = totalPengeluaranFilter.value; const hasData = inc > 0 || exp > 0;
-                chartIncExp = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Pemasukan', 'Pengeluaran'], datasets: [{ data: hasData ? [inc, exp] : [1, 1], backgroundColor: hasData ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => { if (!hasData || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } } } } });
+                const inc = totalPemasukanFilter.value; const exp = totalPengeluaranFilter.value; const hd = inc > 0 || exp > 0;
+                chartIncExp = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Pemasukan', 'Pengeluaran'], datasets: [{ data: hd ? [inc, exp] : [1, 1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => { if (!hd || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } } } } });
             }
-            // Chart Distribusi Pembayaran
-            const ctx2 = document.getElementById('paymentDistChart');
+            const ctx2 = document.getElementById('incomeDistChart');
             if(ctx2) {
-                if (chartDist) chartDist.destroy();
-                const d = [paymentTotals.value['Cash'] || 0, paymentTotals.value['Kredit Kredivo'] || 0, paymentTotals.value['Kredit SPaylater'] || 0]; const hd = d.some(v => v > 0);
-                chartDist = new Chart(ctx2.getContext('2d'), { type: 'doughnut', data: { labels: ['Cash', 'Kredivo', 'SPaylater'], datasets: [{ data: hd ? d : [1, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#f97316'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => { if (!hd || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } } } } });
+                if (chartIncDist) chartIncDist.destroy();
+                const labels = Object.keys(categoryTotalsPemasukan.value); const data = Object.values(categoryTotalsPemasukan.value); const hd = data.some(v => v > 0);
+                chartIncDist = new Chart(ctx2.getContext('2d'), { type: 'doughnut', data: { labels: labels.length ? labels : ['Kosong'], datasets: [{ data: hd ? data : [1], backgroundColor: hd ? ['#059669', '#10b981', '#34d399', '#6ee7b7'] : ['#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => { if (!hd || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } } } } });
             }
         };
 
         const renderCicilanCharts = () => {
-            // Chart Lunas vs Belum Lunas
             const ctx1 = document.getElementById('cicilanStatusChart');
             if(ctx1) {
                 if(chartStatusCicilan) chartStatusCicilan.destroy();
-                const lunas = listCicilan.value.filter(d => d.status === 'Lunas').reduce((a,b) => a + Number(b.nominal), 0);
-                const blm = totalHutangAktif.value; const hd = lunas > 0 || blm > 0;
-                chartStatusCicilan = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Sudah Lunas', 'Belum Dibayar'], datasets: [{ data: hd ? [lunas, blm] : [1,1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => { if (!hd || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } } } } });
+                // Seluruh uang tagihan yang lunas + sudah dicicil parsial
+                const dibayarParsial = listCicilan.value.filter(d => d.status === 'Belum Lunas').reduce((a,b) => a + Number(b.terbayar), 0);
+                const lunasTotal = listCicilan.value.filter(d => d.status === 'Lunas').reduce((a,b) => a + Number(b.nominal), 0);
+                const totalTuntas = lunasTotal + dibayarParsial;
+                
+                const blm = totalHutangAktif.value; const hd = totalTuntas > 0 || blm > 0;
+                chartStatusCicilan = new Chart(ctx1.getContext('2d'), { type: 'doughnut', data: { labels: ['Sudah Dibayar', 'Sisa Hutang'], datasets: [{ data: hd ? [totalTuntas, blm] : [1,1], backgroundColor: hd ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => { if (!hd || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } } } } });
             }
-
-            // Chart Trend (Bar chart kategori vs hutang bulan ini/filter)
             const ctx2 = document.getElementById('cicilanTrendChart');
             if(ctx2) {
                 if(chartTrendCicilan) chartTrendCicilan.destroy();
-                // Mengambil hutang berdasarkan kategori dalam periode yang difilter
-                const trend = {}; listCicilan.value.filter(d => d.status === 'Belum Lunas').forEach(d => { trend[d.metodePembayaran] = (trend[d.metodePembayaran] || 0) + Number(d.nominal); });
-                const lbl = Object.keys(trend); const val = Object.values(trend);
-                chartTrendCicilan = new Chart(ctx2.getContext('2d'), { type: 'bar', data: { labels: lbl.length ? lbl : ['Kosong'], datasets: [{ label: 'Hutang Aktif', data: val.length ? val : [0], backgroundColor: ['#3b82f6', '#f97316'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } } });
+                chartTrendCicilan = new Chart(ctx2.getContext('2d'), { type: 'bar', data: { labels: ['Kredivo', 'SPaylater'], datasets: [{ label: 'Total Hutang Berjalan', data: [hutangKredivoTotal.value, hutangSpaylaterTotal.value], backgroundColor: ['#3b82f6', '#f97316'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } } });
             }
         };
 
+        const renderTabunganCharts = () => {
+            const ctx = document.getElementById('tabunganChart');
+            if(ctx) {
+                if(chartTabunganIns) chartTabunganIns.destroy();
+                const labels = Object.keys(tabunganPerBulan.value);
+                const data = Object.values(tabunganPerBulan.value);
+                chartTabunganIns = new Chart(ctx.getContext('2d'), { type: 'line', data: { labels: labels.length ? labels : ['Belum ada'], datasets: [{ label: 'Penambahan Tabungan (Rp)', data: data.length ? data : [0], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 3, tension: 0.3, fill: true, pointBackgroundColor: '#10b981', pointRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } }, scales: { y: { beginAtZero: true } } } });
+            }
+        }
+
         onMounted(() => fetchData());
 
-        return { form, isLoading, filterWaktu, periods, activeTab, modal, isEditing, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivo, hutangSpaylater, simulasiGaji, batasAmanKredit, sisaKuotaKredit, simpanData, bayarCicilan, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData };
+        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, tabunganPerBulan, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman };
     }
 }).mount('#app');
 </script>
