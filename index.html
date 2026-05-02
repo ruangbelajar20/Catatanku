@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceFlow Pro Max</title>
+    <title>FinanceFlow Pro Max (CRUD)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,7 +27,7 @@
     <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
         <div>
             <h1 class="text-3xl font-extrabold text-blue-600 tracking-tight">FinanceFlow <span class="text-slate-800">Pro</span></h1>
-            <p class="text-sm text-slate-500 font-medium">Dashboard Analitik Keuangan Interaktif</p>
+            <p class="text-sm text-slate-500 font-medium">Dashboard Analitik & Manajemen Keuangan</p>
         </div>
         <div class="flex gap-4">
             <div class="text-right">
@@ -44,12 +44,20 @@
 
     <main class="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
-        <!-- SIDEBAR KIRI (FORM SAJA) -->
-        <section class="xl:col-span-4 space-y-6">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-full">
-                <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
-                    <span class="w-2 h-6 bg-blue-500 rounded-full"></span> Catat Transaksi
+        <!-- SIDEBAR KIRI (FORM) -->
+        <section class="xl:col-span-4 space-y-6" id="form-section">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-full relative overflow-hidden">
+                
+                <!-- Indikator Mode Edit -->
+                <div v-if="isEditing" class="absolute top-0 left-0 w-full bg-orange-100 text-orange-700 text-xs font-bold py-1.5 text-center uppercase tracking-widest">
+                    Mode Edit Data
+                </div>
+
+                <h2 class="text-lg font-bold mb-5 flex items-center gap-2 mt-2">
+                    <span class="w-2 h-6 rounded-full" :class="isEditing ? 'bg-orange-500' : 'bg-blue-500'"></span> 
+                    {{ isEditing ? 'Edit Transaksi' : 'Catat Transaksi' }}
                 </h2>
+                
                 <form @submit.prevent="simpanData" class="space-y-4">
                     <div class="flex gap-2 p-1.5 bg-slate-100 rounded-2xl">
                         <button type="button" @click="form.jenis = 'Pengeluaran'" :class="form.jenis === 'Pengeluaran' ? 'bg-white shadow-md text-rose-600' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-2 rounded-xl text-sm font-bold transition-all uppercase">Keluar</button>
@@ -84,15 +92,22 @@
                         </div>
                     </div>
 
-                    <button type="submit" :disabled="isLoading" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-200/50 flex justify-center items-center gap-2">
-                        <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
-                        {{ isLoading ? 'Menyimpan Data...' : 'Simpan Transaksi' }}
-                    </button>
+                    <div class="flex gap-2 mt-4">
+                        <!-- Tombol Batal Edit -->
+                        <button v-if="isEditing" type="button" @click="batalEdit" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl transition-all">
+                            Batal
+                        </button>
+                        <!-- Tombol Simpan/Update -->
+                        <button type="submit" :disabled="isLoading" :class="isEditing ? 'w-2/3 bg-orange-500 hover:bg-orange-600 shadow-orange-200/50' : 'w-full bg-blue-600 hover:bg-blue-700 shadow-blue-200/50'" class="text-white font-bold py-4 rounded-2xl transition-all shadow-lg flex justify-center items-center gap-2">
+                            <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                            {{ isLoading ? 'Memproses...' : (isEditing ? 'Update Data' : 'Simpan Transaksi') }}
+                        </button>
+                    </div>
                 </form>
             </div>
         </section>
 
-        <!-- AREA KANAN (KARTU PEMBAYARAN & GRAFIK) -->
+        <!-- AREA KANAN (KARTU & GRAFIK) -->
         <section class="xl:col-span-8 space-y-6">
             
             <!-- TOMBOL METODE PEMBAYARAN -->
@@ -103,7 +118,6 @@
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Pembayaran</p>
                         <h3 class="text-xl font-extrabold text-emerald-600 flex items-center gap-2">💵 Cash</h3>
                         <p class="text-sm font-semibold mt-2 text-slate-700">Rp {{ formatRupiah(paymentTotals['Cash'] || 0) }}</p>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium group-hover:text-emerald-700">Klik lihat rincian keterangan &rarr;</p>
                     </div>
                 </button>
                 
@@ -113,7 +127,6 @@
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Pembayaran</p>
                         <h3 class="text-xl font-extrabold text-blue-600 flex items-center gap-2">💳 Kredivo</h3>
                         <p class="text-sm font-semibold mt-2 text-slate-700">Rp {{ formatRupiah(paymentTotals['Kredit Kredivo'] || 0) }}</p>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium group-hover:text-blue-700">Klik lihat rincian keterangan &rarr;</p>
                     </div>
                 </button>
 
@@ -123,7 +136,6 @@
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Pembayaran</p>
                         <h3 class="text-xl font-extrabold text-orange-500 flex items-center gap-2">🛍️ SPaylater</h3>
                         <p class="text-sm font-semibold mt-2 text-slate-700">Rp {{ formatRupiah(paymentTotals['Kredit SPaylater'] || 0) }}</p>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium group-hover:text-orange-700">Klik lihat rincian keterangan &rarr;</p>
                     </div>
                 </button>
             </div>
@@ -156,14 +168,24 @@
             </div>
         </section>
 
-        <!-- SEKSI BARU: TOTAL PER KATEGORI & RASIO (KIRI - KANAN - BAWAH) -->
+        <!-- SEKSI BAWAH -->
         <section class="xl:col-span-12 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            
+            <!-- DIPINDAHKAN KE ATAS: GRAFIK RASIO -->
+            <div class="mb-10 pb-8 border-b border-slate-100 flex flex-col items-center">
+                <h3 class="text-base font-bold text-slate-800 uppercase tracking-widest mb-2 text-center">Rasio Pemasukan vs Pengeluaran</h3>
+                <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-wider text-center bg-slate-50 px-3 py-1 rounded-full">Berdasarkan filter rentang waktu</p>
+                <div class="relative h-[280px] w-full max-w-md">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
                 <div class="flex items-center gap-3">
-                    <h2 class="text-xl font-bold text-slate-800">Total Per Kategori</h2>
+                    <h2 class="text-xl font-bold text-slate-800">Rincian Total Per Kategori</h2>
                     <span class="text-[10px] font-semibold tracking-wider uppercase bg-slate-100 text-slate-500 px-3 py-1 rounded-lg">Berdasarkan Filter</span>
                 </div>
-                <p class="text-xs text-slate-400 font-medium">*Klik item untuk melihat rincian riwayat.</p>
+                <p class="text-xs text-slate-400 font-medium">*Klik item untuk melihat & mengedit riwayat.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -173,7 +195,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                         Pemasukan
                     </h3>
-                    <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2">
+                    <div class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                         <button v-for="(total, kat) in categoryTotalsPemasukan" :key="kat" @click="openModal('category', kat, 'Pemasukan')" class="w-full flex justify-between items-center p-3.5 bg-white rounded-xl hover:bg-emerald-50 hover:border-emerald-200 hover:shadow-sm border border-slate-100 transition-all cursor-pointer group text-left">
                             <span class="font-bold text-sm text-slate-700 group-hover:text-emerald-700">{{ kat }}</span>
                             <span class="font-extrabold text-emerald-600 text-sm">+ Rp {{ formatRupiah(total) }}</span>
@@ -190,7 +212,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                         Pengeluaran
                     </h3>
-                    <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2">
+                    <div class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                         <button v-for="(total, kat) in categoryTotalsPengeluaran" :key="kat" @click="openModal('category', kat, 'Pengeluaran')" class="w-full flex justify-between items-center p-3.5 bg-white rounded-xl hover:bg-rose-50 hover:border-rose-200 hover:shadow-sm border border-slate-100 transition-all cursor-pointer group text-left">
                             <span class="font-bold text-sm text-slate-700 group-hover:text-rose-700">{{ kat }}</span>
                             <span class="font-extrabold text-rose-600 text-sm">- Rp {{ formatRupiah(total) }}</span>
@@ -201,23 +223,13 @@
                     </div>
                 </div>
             </div>
-
-            <!-- GRAFIK TENGAH BAWAH: RASIO PEMASUKAN VS PENGELUARAN -->
-            <div class="mt-8 pt-8 border-t border-slate-100 flex flex-col items-center">
-                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">Rasio Pemasukan vs Pengeluaran</h3>
-                <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-wider text-center">(Berdasarkan rentang waktu yang difilter)</p>
-                <div class="relative h-[250px] w-full max-w-md">
-                    <canvas id="incomeExpenseChart"></canvas>
-                </div>
-            </div>
-
         </section>
     </main>
 
-    <!-- UNIVERSAL MODAL -->
+    <!-- UNIVERSAL MODAL DENGAN AKSI CRUD -->
     <div v-if="modal.isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModal"></div>
-        <div class="relative bg-white w-full max-w-4xl max-h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+        <div class="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
             
             <div class="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div>
@@ -227,7 +239,6 @@
                             {{ modal.title }}
                         </span>
                     </h2>
-                    <p class="text-xs md:text-sm text-slate-500 mt-2 font-medium">Menampilkan riwayat data berdasarkan filter pilihan.</p>
                 </div>
                 <button @click="closeModal" class="p-2 bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-colors shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -236,18 +247,19 @@
             
             <div class="overflow-y-auto flex-1 p-0">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm min-w-[600px]">
+                    <table class="w-full text-left text-sm min-w-[750px]">
                         <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] font-bold tracking-wider sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th class="px-6 py-4">Waktu & Tanggal</th>
+                                <th class="px-6 py-4">Waktu</th>
                                 <th v-if="modal.type === 'payment'" class="px-6 py-4">Kategori</th>
-                                <th v-if="modal.type === 'category' && modal.jenis === 'Pengeluaran'" class="px-6 py-4">Pembayaran</th>
+                                <th v-if="modal.type === 'category' && modal.jenis === 'Pengeluaran'" class="px-6 py-4">Metode</th>
                                 <th class="px-6 py-4">Keterangan</th>
                                 <th class="px-6 py-4 text-right">Nominal</th>
+                                <th class="px-6 py-4 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr v-for="(item, idx) in modal.data" :key="idx" class="hover:bg-blue-50/50 transition-colors">
+                            <tr v-for="(item, idx) in modal.data" :key="idx" class="hover:bg-blue-50/50 transition-colors group">
                                 <td class="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{{ formatTanggalView(item.tanggal) }}</td>
                                 <td v-if="modal.type === 'payment'" class="px-6 py-4 font-bold text-slate-700">{{ item.kategori }}</td>
                                 <td v-if="modal.type === 'category' && modal.jenis === 'Pengeluaran'" class="px-6 py-4">
@@ -257,9 +269,20 @@
                                 <td class="px-6 py-4 text-right font-bold whitespace-nowrap" :class="item.jenis === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'">
                                     {{ item.jenis === 'Pemasukan' ? '+' : '-' }} Rp {{ formatRupiah(item.nominal) }}
                                 </td>
+                                <!-- TOMBOL AKSI -->
+                                <td class="px-6 py-4">
+                                    <div class="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button @click="siapkanEdit(item)" class="p-1.5 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-md transition-colors" title="Edit">
+                                            ✏️
+                                        </button>
+                                        <button @click="hapusData(item)" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-600 rounded-md transition-colors" title="Hapus">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                             <tr v-if="modal.data.length === 0">
-                                <td :colspan="4" class="px-6 py-12 text-center text-slate-400 font-medium">Tidak ada transaksi ditemukan.</td>
+                                <td :colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium">Tidak ada transaksi.</td>
                             </tr>
                         </tbody>
                         <tfoot class="bg-slate-50 border-t border-slate-200 sticky bottom-0 z-10" v-if="modal.data.length > 0">
@@ -268,6 +291,7 @@
                                 <td class="px-6 py-4 text-right font-extrabold text-base" :class="modal.jenis === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'">
                                     Rp {{ formatRupiah(modal.total) }}
                                 </td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -292,19 +316,20 @@ const getCurrentDateTimeLocal = () => {
 createApp({
     setup() {
         // MASUKKAN URL APPS SCRIPT ANDA DI SINI
-        const API_URL = "https://script.google.com/macros/s/AKfycbxxptr17CnbKceH1jjhkVYhl9KHQLQ6TsKnQlzwBO6XxV93pgP4roFZ6hCa_GYWfmn3dA/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbz-ljK-FncoIxsTMjo8K7foUxZvcfVs3PGTnaYNE6eXmfzhSBoEwBXYp0FGM9TFwau2lw/exec"; 
         
         const dataTransaksi = ref([]);
         const isLoading = ref(false);
         const filterWaktu = ref('30'); 
         
-        const modal = ref({
-            isOpen: false, type: '', title: '', jenis: '', data: [], total: 0
-        });
+        // State Edit
+        const isEditing = ref(false);
+        const editId = ref(null);
+        const oldDataRef = ref(null);
 
-        let chartCat = null;
-        let chartDist = null;
-        let chartIncExp = null; // Variabel untuk chart baru
+        const modal = ref({ isOpen: false, type: '', title: '', jenis: '', data: [], total: 0 });
+
+        let chartCat = null; let chartDist = null; let chartIncExp = null;
 
         const form = ref({
             tanggal: getCurrentDateTimeLocal(),
@@ -314,13 +339,16 @@ createApp({
             metodePembayaran: 'Cash'
         });
 
-        // ================= COMPUTED PROPERTIES =================
+        const resetForm = () => {
+            form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' };
+            isEditing.value = false; editId.value = null; oldDataRef.value = null;
+        };
+
         const totalPemasukan = computed(() => dataTransaksi.value.filter(d => d.jenis === 'Pemasukan').reduce((a, b) => a + Number(b.nominal), 0));
         const totalPengeluaran = computed(() => dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran').reduce((a, b) => a + Number(b.nominal), 0));
 
         const filteredData = computed(() => {
-            const now = new Date();
-            const pastDate = new Date();
+            const now = new Date(); const pastDate = new Date();
             pastDate.setDate(now.getDate() - parseInt(filterWaktu.value));
             return dataTransaksi.value.filter(item => {
                 const itemDate = new Date(item.tanggal);
@@ -330,17 +358,13 @@ createApp({
 
         const categoryTotalsPengeluaran = computed(() => {
             const totals = {};
-            filteredData.value.filter(d => d.jenis === 'Pengeluaran').forEach(d => {
-                totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal);
-            });
+            filteredData.value.filter(d => d.jenis === 'Pengeluaran').forEach(d => { totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal); });
             return Object.fromEntries(Object.entries(totals).sort(([,a],[,b]) => b-a));
         });
 
         const categoryTotalsPemasukan = computed(() => {
             const totals = {};
-            filteredData.value.filter(d => d.jenis === 'Pemasukan').forEach(d => {
-                totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal);
-            });
+            filteredData.value.filter(d => d.jenis === 'Pemasukan').forEach(d => { totals[d.kategori] = (totals[d.kategori] || 0) + Number(d.nominal); });
             return Object.fromEntries(Object.entries(totals).sort(([,a],[,b]) => b-a));
         });
 
@@ -353,14 +377,10 @@ createApp({
             return totals;
         });
 
-        // ================= FUNGSI UTAMA =================
         const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
-        
         const formatTanggalView = (isoString) => {
             if(!isoString) return '-';
-            return new Intl.DateTimeFormat('id-ID', {
-                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            }).format(new Date(isoString));
+            return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(isoString));
         };
 
         const fetchData = async () => {
@@ -368,149 +388,131 @@ createApp({
                 const res = await fetch(API_URL);
                 dataTransaksi.value = await res.json();
                 renderSemuaChart();
+                if(modal.value.isOpen) refreshModalData();
             } catch (e) { console.error("Error:", e); }
         };
 
         const simpanData = async () => {
             if(!form.value.nominal) return alert("Masukkan nominal!");
             isLoading.value = true;
+            
+            const payload = isEditing.value 
+                ? { action: 'update', id: editId.value, oldData: oldDataRef.value, data: form.value }
+                : { action: 'create', data: form.value };
+
             try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify(form.value) });
-                form.value.nominal = ''; form.value.kategori = ''; form.value.keterangan = '';
-                form.value.tanggal = getCurrentDateTimeLocal();
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                resetForm();
                 await fetchData();
-            } catch (e) { alert("Gagal menyimpan data!"); } 
+            } catch (e) { alert("Gagal memproses data!"); } 
             finally { isLoading.value = false; }
         };
 
+        // ==== FITUR CRUD MODAL ====
+        const siapkanEdit = (item) => {
+            closeModal();
+            isEditing.value = true;
+            editId.value = item.id;
+            oldDataRef.value = item;
+            
+            // Konversi ISO String ke datetime-local
+            const d = new Date(item.tanggal);
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            
+            form.value = {
+                tanggal: d.toISOString().slice(0, 16),
+                jenis: item.jenis,
+                kategori: item.kategori,
+                nominal: item.nominal,
+                keterangan: item.keterangan,
+                metodePembayaran: item.metodePembayaran || 'Cash'
+            };
+            
+            document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        const batalEdit = () => { resetForm(); };
+
+        const hapusData = async (item) => {
+            if(!confirm(`Yakin ingin menghapus transaksi ${item.kategori} sejumlah Rp ${formatRupiah(item.nominal)}?`)) return;
+            
+            isLoading.value = true;
+            try {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: item.id, oldData: item }) });
+                await fetchData();
+            } catch (e) { alert("Gagal menghapus data!"); }
+            finally { isLoading.value = false; }
+        };
+
+        // =========================
         const openModal = (type, title, jenisTransaksi = 'Pengeluaran') => {
-            modal.value.type = type;
-            modal.value.title = title;
-            modal.value.jenis = jenisTransaksi;
-            
+            modal.value.type = type; modal.value.title = title; modal.value.jenis = jenisTransaksi;
+            refreshModalData();
+            modal.value.isOpen = true;
+        };
+
+        const refreshModalData = () => {
             let filtered = [];
-            if(type === 'payment') {
-                filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && (d.metodePembayaran || 'Cash') === title);
-                modal.value.jenis = 'Pengeluaran';
-            } else if (type === 'category') {
-                filtered = dataTransaksi.value.filter(d => d.jenis === jenisTransaksi && d.kategori === title);
+            if(modal.value.type === 'payment') {
+                filtered = dataTransaksi.value.filter(d => d.jenis === 'Pengeluaran' && (d.metodePembayaran || 'Cash') === modal.value.title);
+            } else if (modal.value.type === 'category') {
+                filtered = dataTransaksi.value.filter(d => d.jenis === modal.value.jenis && d.kategori === modal.value.title);
             }
-            
             modal.value.data = filtered.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
             modal.value.total = filtered.reduce((acc, curr) => acc + Number(curr.nominal), 0);
-            modal.value.isOpen = true;
         };
 
         const closeModal = () => { modal.value.isOpen = false; };
 
-        // ================= FUNGSI GRAFIK =================
-        const renderSemuaChart = () => {
-            renderCategoryChart();
-            renderPaymentDistChart();
-            renderIncomeExpenseChart(); // Memanggil render chart rasio
-        };
+        // ==== RENDER GRAFIK ====
+        const renderSemuaChart = () => { renderCategoryChart(); renderPaymentDistChart(); renderIncomeExpenseChart(); };
 
         const renderCategoryChart = () => {
-            const ctx = document.getElementById('categoryChart');
-            if(!ctx) return;
+            const ctx = document.getElementById('categoryChart'); if(!ctx) return;
             if (chartCat) chartCat.destroy();
             chartCat = new Chart(ctx.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: Object.keys(categoryTotalsPengeluaran.value).length ? Object.keys(categoryTotalsPengeluaran.value) : ['Kosong'],
-                    datasets: [{
-                        label: 'Rp', data: Object.values(categoryTotalsPengeluaran.value).length ? Object.values(categoryTotalsPengeluaran.value) : [0],
-                        backgroundColor: '#3b82f6', borderRadius: 4
-                    }]
+                    datasets: [{ label: 'Rp', data: Object.values(categoryTotalsPengeluaran.value).length ? Object.values(categoryTotalsPengeluaran.value) : [0], backgroundColor: '#3b82f6', borderRadius: 4 }]
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    plugins: { legend: { display: false }, datalabels: { display: false } }, 
-                    scales: { x: { display: false } } 
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } }, scales: { x: { display: false } } }
             });
         };
 
         const renderPaymentDistChart = () => {
-            const ctx = document.getElementById('paymentDistChart');
-            if(!ctx) return;
+            const ctx = document.getElementById('paymentDistChart'); if(!ctx) return;
             if (chartDist) chartDist.destroy();
-            
             const labels = ['Cash', 'Kredivo', 'SPaylater'];
-            const data = [
-                paymentTotals.value['Cash'] || 0,
-                paymentTotals.value['Kredit Kredivo'] || 0,
-                paymentTotals.value['Kredit SPaylater'] || 0
-            ];
-
+            const data = [paymentTotals.value['Cash'] || 0, paymentTotals.value['Kredit Kredivo'] || 0, paymentTotals.value['Kredit SPaylater'] || 0];
             const hasData = data.some(v => v > 0);
-            const chartData = hasData ? data : [1, 0, 0];
-
             chartDist = new Chart(ctx.getContext('2d'), {
                 type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: ['#10b981', '#3b82f6', '#f97316'],
-                        borderWidth: 0, hoverOffset: 4
-                    }]
-                },
+                data: { labels: labels, datasets: [{ data: hasData ? data : [1, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#f97316'], borderWidth: 0, hoverOffset: 4 }] },
                 options: { 
                     responsive: true, maintainAspectRatio: false, cutout: '65%',
                     plugins: { 
                         legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 12 } } },
-                        datalabels: {
-                            color: '#ffffff',
-                            font: { weight: 'bold', size: 13 },
-                            formatter: (value, context) => {
-                                if (!hasData || value === 0) return ''; 
-                                let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                return (value * 100 / sum).toFixed(1) + "%";
-                            }
-                        }
+                        datalabels: { color: '#ffffff', font: { weight: 'bold', size: 13 }, formatter: (v, ctx) => { if (!hasData || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } }
                     } 
                 }
             });
         };
 
-        // FUNGSI GRAFIK BARU: Rasio Pemasukan vs Pengeluaran
         const renderIncomeExpenseChart = () => {
-            const ctx = document.getElementById('incomeExpenseChart');
-            if(!ctx) return;
+            const ctx = document.getElementById('incomeExpenseChart'); if(!ctx) return;
             if (chartIncExp) chartIncExp.destroy();
-            
-            // Mengambil total pemasukan & pengeluaran dari data yang sudah difilter waktunya
             const incTotal = filteredData.value.filter(d => d.jenis === 'Pemasukan').reduce((a, b) => a + Number(b.nominal), 0);
             const expTotal = filteredData.value.filter(d => d.jenis === 'Pengeluaran').reduce((a, b) => a + Number(b.nominal), 0);
-
             const hasData = incTotal > 0 || expTotal > 0;
-            const chartData = hasData ? [incTotal, expTotal] : [1, 1]; // Fallback jika tidak ada data sama sekali
-
             chartIncExp = new Chart(ctx.getContext('2d'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Pemasukan', 'Pengeluaran'],
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: hasData ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], // Emerald vs Rose
-                        borderWidth: 0,
-                        hoverOffset: 6
-                    }]
-                },
+                data: { labels: ['Pemasukan', 'Pengeluaran'], datasets: [{ data: hasData ? [incTotal, expTotal] : [1, 1], backgroundColor: hasData ? ['#10b981', '#e11d48'] : ['#e2e8f0', '#e2e8f0'], borderWidth: 0, hoverOffset: 6 }] },
                 options: { 
                     responsive: true, maintainAspectRatio: false, cutout: '60%',
                     plugins: { 
                         legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 13, weight: 'bold' } } },
-                        datalabels: {
-                            color: '#ffffff',
-                            font: { weight: 'bold', size: 16 },
-                            formatter: (value, context) => {
-                                if (!hasData || value === 0) return ''; 
-                                let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                return (value * 100 / sum).toFixed(1) + "%";
-                            }
-                        }
+                        datalabels: { color: '#ffffff', font: { weight: 'bold', size: 16 }, formatter: (v, ctx) => { if (!hasData || v === 0) return ''; return (v * 100 / ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"; } }
                     } 
                 }
             });
@@ -519,9 +521,9 @@ createApp({
         onMounted(() => fetchData());
 
         return {
-            form, isLoading, filterWaktu, modal,
+            form, isLoading, filterWaktu, modal, isEditing,
             totalPemasukan, totalPengeluaran, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals,
-            simpanData, formatRupiah, formatTanggalView, renderSemuaChart, openModal, closeModal
+            simpanData, formatRupiah, formatTanggalView, renderSemuaChart, openModal, closeModal, siapkanEdit, batalEdit, hapusData
         };
     }
 }).mount('#app');
