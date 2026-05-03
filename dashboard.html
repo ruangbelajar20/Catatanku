@@ -551,24 +551,29 @@ createApp({
 
         const mulaiSuara = () => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return showNotif("Browser Anda tidak mendukung perintah suara.", "error");
+            
+            // Penjelasan spesifik jika browser menolak (seperti Firefox)
+            if (!SpeechRecognition) {
+                return showNotif("Browser Anda (seperti Firefox) menolak fitur ini. Gunakan Google Chrome/Edge.", "error");
+            }
 
             const recognition = new SpeechRecognition();
             recognition.lang = 'id-ID';
+            recognition.continuous = false; 
+            recognition.interimResults = false;
+
             recognition.start();
+            showNotif("Mendengarkan... (Bicara sekarang dengan jelas)", "success");
 
-            showNotif("Silakan bicara... (Misal: 'Pengeluaran lima puluh ribu untuk makan via cash')", "success");
-
-            recognition.onresult = (event) => {
+            recognition.onresult = async (event) => {
                 const teks = event.results[0][0].transcript.toLowerCase();
-                console.log("Suara terdeteksi:", teks);
-
+                
                 // 1. Deteksi Jenis
                 if (teks.includes('masuk') || teks.includes('pemasukan') || teks.includes('gaji')) form.value.jenis = 'Pemasukan';
                 else if (teks.includes('tabung') || teks.includes('simpan')) form.value.jenis = 'Tabungan';
                 else form.value.jenis = 'Pengeluaran';
 
-                // 2. Deteksi Angka (Menghapus kata ribu/juta lalu mengkonversi ke angka)
+                // 2. Deteksi Angka (Konversi teks ke nominal)
                 let angkaStr = teks.match(/\d+/g); 
                 let nominal = 0;
                 if (angkaStr) {
@@ -598,14 +603,41 @@ createApp({
                 
                 if (!kategoriKetemu && form.value.jenis !== 'Tabungan') {
                     kategoriDropdown.value = 'Lainnya';
-                    form.value.kategori = teks; // Teks sisa dimasukkan ke input manual
+                    form.value.kategori = "Lainnya"; 
                 }
 
-                form.value.keterangan = "Via Voice Command";
-                showNotif("Suara diproses: " + teks, "success");
+                // Menyimpan teks asli ucapan Anda sebagai keterangan
+                form.value.keterangan = "Voice: " + teks; 
+
+                // ==========================================
+                // 5. FITUR KONFIRMASI SIMPAN OTOMATIS
+                // ==========================================
+                const ringkasan = `Apakah Anda ingin menyimpan transaksi ini?\n\n` +
+                                  `📝 Jenis: ${form.value.jenis}\n` +
+                                  `💰 Nominal: Rp ${new Intl.NumberFormat('id-ID').format(form.value.nominal)}\n` +
+                                  `🏷️ Kategori: ${form.value.kategori || kategoriDropdown.value}\n` +
+                                  `💳 Metode: ${metodeDropdown.value}\n\n` +
+                                  `(Kalimat asli: "${teks}")`;
+                
+                // Memunculkan kotak dialog browser (Ok / Cancel)
+                setTimeout(async () => {
+                    if (confirm(ringkasan)) {
+                        // Jika diklik "OK", jalankan fungsi simpan data ke server
+                        await simpanData(); 
+                    } else {
+                        // Jika di-Cancel, form terisi tapi tidak tersimpan ke server
+                        showNotif("Penyimpanan otomatis dibatalkan. Silakan edit form secara manual.", "success");
+                    }
+                }, 300); // Jeda sedikit agar form di latar belakang ter-update secara visual
             };
 
-            recognition.onerror = () => { showNotif("Suara tidak terdengar jelas.", "error"); };
+            recognition.onerror = (event) => { 
+                if (event.error === 'no-speech') {
+                    showNotif("Suara tidak terdengar. Coba klik lagi.", "error");
+                } else {
+                    showNotif("Mikrofon terhalang: " + event.error, "error");
+                }
+            };
         };
 
         const filteredData = computed(() => {
