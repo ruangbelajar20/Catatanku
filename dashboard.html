@@ -626,9 +626,8 @@ createApp({
         const mulaiSuara = () => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
-            // Penjelasan spesifik jika browser menolak (seperti Firefox)
             if (!SpeechRecognition) {
-                return showNotif("Browser Anda (seperti Firefox) menolak fitur ini. Gunakan Google Chrome/Edge.", "error");
+                return showNotif("Browser Anda menolak fitur ini. Gunakan Chrome/Edge.", "error");
             }
 
             const recognition = new SpeechRecognition();
@@ -637,80 +636,82 @@ createApp({
             recognition.interimResults = false;
 
             recognition.start();
-            showNotif("Mendengarkan... (Bicara sekarang dengan jelas)", "success");
+            showNotif("Mendengarkan... (Sebutkan transaksi Anda bebas)", "success");
 
             recognition.onresult = async (event) => {
-                const teks = event.results[0][0].transcript.toLowerCase();
+                const teks = event.results[0][0].transcript;
+                showNotif("Menganalisis kalimat dengan Groq AI...", "success");
                 
-                // 1. Deteksi Jenis
-                if (teks.includes('masuk') || teks.includes('pemasukan') || teks.includes('gaji')) form.value.jenis = 'Pemasukan';
-                else if (teks.includes('tabung') || teks.includes('simpan')) form.value.jenis = 'Tabungan';
-                else form.value.jenis = 'Pengeluaran';
+                try {
+                    isLoading.value = true;
+                    
+                    // Mengirim teks ucapan Anda ke Backend Apps Script untuk diproses AI
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            action: 'parse_voice', 
+                            text: teks,
+                            token: localStorage.getItem('ff_token')
+                        })
+                    });
+                    
+                    const result = await res.json();
+                    
+                    if (result.status === 'success') {
+                        const aiData = result.data;
+                        
+                        // 1. Mengisi Jenis & Nominal
+                        form.value.jenis = aiData.jenis || 'Pengeluaran';
+                        form.value.nominal = aiData.nominal || 0;
+                        form.value.keterangan = "Voice: " + teks;
 
-                // 2. Deteksi Angka (Konversi teks ke nominal)
-                let angkaStr = teks.match(/\d+/g); 
-                let nominal = 0;
-                if (angkaStr) {
-                    nominal = parseInt(angkaStr.join(''));
-                    if (teks.includes('ribu')) nominal *= 1000;
-                    if (teks.includes('juta')) nominal *= 1000000;
-                    form.value.nominal = nominal;
-                }
+                        // 2. Mengisi Metode (Dinamis)
+                        const metList = ['Cash', 'Transfer Bank', 'E-Wallet', 'Kredit Kredivo', 'Kredit SPaylater'];
+                        if (metList.includes(aiData.metode)) {
+                            metodeDropdown.value = aiData.metode;
+                        } else {
+                            metodeDropdown.value = 'Lainnya';
+                            form.value.metodePembayaran = aiData.metode || 'Cash';
+                        }
 
-                // 3. Deteksi Metode Pembayaran
-                if (teks.includes('transfer') || teks.includes('bank')) metodeDropdown.value = 'Transfer Bank';
-                else if (teks.includes('wallet') || teks.includes('ovo') || teks.includes('dana') || teks.includes('gopay')) metodeDropdown.value = 'E-Wallet';
-                else if (teks.includes('kredivo')) metodeDropdown.value = 'Kredit Kredivo';
-                else if (teks.includes('spaylater') || teks.includes('shopee')) metodeDropdown.value = 'Kredit SPaylater';
-                else metodeDropdown.value = 'Cash';
+                        // 3. Mengisi Kategori (Dinamis)
+                        if(form.value.jenis === 'Tabungan') {
+                            kategoriDropdown.value = 'Lainnya'; 
+                            form.value.kategori = 'Tabungan';
+                        } else {
+                            const katList = form.value.jenis === 'Pemasukan' ? ['Pemasukan Utama', 'Pemasukan Sampingan'] : ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Cicilan Rumah', 'Cicilan Kendaraan'];
+                            
+                            if (katList.includes(aiData.kategori)) {
+                                kategoriDropdown.value = aiData.kategori;
+                                form.value.kategori = ''; 
+                            } else {
+                                kategoriDropdown.value = 'Lainnya';
+                                form.value.kategori = aiData.kategori || 'Lainnya';
+                            }
+                        }
 
-                // 4. Deteksi Kategori
-                const listKat = listKategoriAktif.value.map(k => k.toLowerCase());
-                let kategoriKetemu = false;
-                for (let k of listKat) {
-                    if (teks.includes(k)) {
-                        kategoriDropdown.value = listKategoriAktif.value[listKat.indexOf(k)];
-                        kategoriKetemu = true;
-                        break;
+                        // 4. Membuka Modal Konfirmasi Modern
+                        modalVoiceConfirm.value = {
+                            isOpen: true,
+                            data: { ...form.value },
+                            metode: metodeDropdown.value !== 'Lainnya' ? metodeDropdown.value : form.value.metodePembayaran,
+                            kategoriDisplay: form.value.kategori || kategoriDropdown.value,
+                            originalText: teks
+                        };
+                        
+                    } else {
+                        showNotif("AI bingung memahami kalimat Anda.", "error");
                     }
+                } catch (e) {
+                    showNotif("Koneksi ke AI terputus.", "error");
+                } finally {
+                    isLoading.value = false;
                 }
-                
-                if (!kategoriKetemu && form.value.jenis !== 'Tabungan') {
-                    kategoriDropdown.value = 'Lainnya';
-                    form.value.kategori = "Lainnya"; 
-                }
-
-                // Menyimpan teks asli ucapan Anda sebagai keterangan
-                form.value.keterangan = "Voice: " + teks; 
-
-                // ==========================================
-                // 5. FITUR KONFIRMASI SIMPAN OTOMATIS
-                // ==========================================
-                const ringkasan = `Apakah Anda ingin menyimpan transaksi ini?\n\n` +
-                                  `📝 Jenis: ${form.value.jenis}\n` +
-                                  `💰 Nominal: Rp ${new Intl.NumberFormat('id-ID').format(form.value.nominal)}\n` +
-                                  `🏷️ Kategori: ${form.value.kategori || kategoriDropdown.value}\n` +
-                                  `💳 Metode: ${metodeDropdown.value}\n\n` +
-                                  `(Kalimat asli: "${teks}")`;
-                
-                // Memunculkan kotak dialog browser (Ok / Cancel)
-                setTimeout(() => {
-                    modalVoiceConfirm.value = {
-                        isOpen: true,
-                        data: { ...form.value }, // Mengkloning data saat ini
-                        metode: metodeDropdown.value,
-                        kategoriDisplay: form.value.kategori || kategoriDropdown.value,
-                        originalText: teks
-                    };
-                }, 300);
             };
 
             recognition.onerror = (event) => { 
-                if (event.error === 'no-speech') {
-                    showNotif("Suara tidak terdengar. Coba klik lagi.", "error");
-                } else {
-                    showNotif("Mikrofon terhalang: " + event.error, "error");
-                }
+                if (event.error === 'no-speech') showNotif("Suara tidak terdengar.", "error");
+                else showNotif("Mikrofon error: " + event.error, "error");
             };
         };
 
