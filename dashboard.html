@@ -153,12 +153,18 @@
                                     <input v-if="kategoriDropdown === 'Lainnya'" type="text" v-model="form.kategori" required placeholder="Ketik manual..." class="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white animate-fade-in">
                                 </div>
                                 <div v-if="form.jenis !== 'Tabungan'">
-                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Metode</label>
-                                    <select v-model="form.metodePembayaran" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white">
+                                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Metode Pembayaran</label>
+                                    <select v-model="metodeDropdown" @change="if(metodeDropdown !== 'Lainnya') form.metodePembayaran = metodeDropdown" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white mb-2">
                                         <option value="Cash">💵 Cash</option>
-                                        <option value="Kredit Kredivo">💳 Kredivo</option>
-                                        <option value="Kredit SPaylater">🛍️ SPaylater</option>
+                                        <option value="Transfer Bank">🏦 Transfer Bank</option>
+                                        <option value="E-Wallet">📱 E-Wallet (OVO/Dana/dll)</option>
+                                        <option v-if="form.jenis === 'Pengeluaran'" value="Kredit Kredivo">💳 Kredivo</option>
+                                        <option v-if="form.jenis === 'Pengeluaran'" value="Kredit SPaylater">🛍️ SPaylater</option>
+                                        <option value="Lainnya">Lainnya... (Ketik Manual)</option>
                                     </select>
+                                    
+                                    <!-- Input Form akan muncul khusus jika 'Lainnya' dipilih -->
+                                    <input v-if="metodeDropdown === 'Lainnya'" type="text" v-model="form.metodePembayaran" required placeholder="Sebutkan metode pembayaran..." class="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white animate-fade-in">
                                 </div>
                                 <div class="col-span-2">
                                     <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Keterangan / Tujuan</label>
@@ -526,15 +532,20 @@ createApp({
         const kategoriDropdown = ref('Makan');
         const listKategoriAktif = computed(() => {
             if (form.value.jenis === 'Pemasukan') return ['Pemasukan Utama', 'Pemasukan Sampingan', 'Lainnya'];
-            return ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Lainnya'];
+            // Kategori pengeluaran ditambah Cicilan Rumah & Kendaraan
+            return ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Cicilan Rumah', 'Cicilan Kendaraan', 'Lainnya'];
         });
+        
+        // Tambahkan variabel baru ini tepat di bawah listKategoriAktif
+        const metodeDropdown = ref('Cash');
 
         const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
         
         watch(() => form.value.jenis, (newVal) => {
             if (!isEditing.value && newVal !== 'Tabungan') {
                 kategoriDropdown.value = newVal === 'Pemasukan' ? 'Pemasukan Utama' : 'Makan';
-                form.value.kategori = ''; 
+                form.value.kategori = '';
+                metodeDropdown.value = 'Cash';
             }
         });
 
@@ -555,6 +566,7 @@ createApp({
         const resetForm = () => { 
             form.value = { tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' }; 
             kategoriDropdown.value = 'Makan';
+            metodeDropdown.value = 'Cash';
             isEditing.value = false; editId.value = null; oldDataRef.value = null; 
         };
 
@@ -761,8 +773,16 @@ createApp({
             const d = new Date(item.tanggal); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); 
             form.value = { tanggal: d.toISOString().slice(0, 16), jenis: item.jenis, kategori: item.kategori, nominal: item.nominal, keterangan: item.keterangan, metodePembayaran: item.metodePembayaran || 'Cash' }; 
             if (item.jenis !== 'Tabungan') {
-                const listOpsi = item.jenis === 'Pemasukan' ? ['Pemasukan Utama', 'Pemasukan Sampingan'] : ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air'];
+                const listOpsi = item.jenis === 'Pemasukan' ? ['Pemasukan Utama', 'Pemasukan Sampingan'] : ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Cicilan Rumah', 'Cicilan Kendaraan'];
                 if (listOpsi.includes(item.kategori)) kategoriDropdown.value = item.kategori; else kategoriDropdown.value = 'Lainnya';
+                
+                // Deteksi metode custom
+                const listMetodeBaku = ['Cash', 'Transfer Bank', 'E-Wallet', 'Kredit Kredivo', 'Kredit SPaylater'];
+                if(listMetodeBaku.includes(item.metodePembayaran || 'Cash')) {
+                    metodeDropdown.value = item.metodePembayaran || 'Cash';
+                } else {
+                    metodeDropdown.value = 'Lainnya';
+                }
             }
             setTimeout(() => { document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' }); }, 100); 
         };
@@ -772,7 +792,7 @@ createApp({
             if(!confirm(`Hapus data?`)) return; 
             isLoading.value = true; 
             try { 
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: item.id }) }); 
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: item.id, token: localStorage.getItem('ff_token') }) }); 
                 const result = await res.json();
                 if(result.status === 'success'){ showNotif("Dihapus", 'success'); await fetchData(); } 
             } catch (e) { showNotif("Gagal", "error"); } finally { isLoading.value = false; } 
