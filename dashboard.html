@@ -713,6 +713,7 @@ createApp({
                 if (event.error === 'no-speech') showNotif("Senyap", "Suara tidak terdengar.", "error");
                 else showNotif("Mikrofon Error", event.error, "error");
             };
+        };
 
         const filteredData = computed(() => {
             const now = new Date(); const pastDate = new Date(); pastDate.setDate(now.getDate() - parseInt(filterWaktu.value));
