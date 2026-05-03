@@ -103,10 +103,15 @@
                 <section class="xl:col-span-4" id="form-section">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative">
                         <div v-if="isEditing" class="absolute top-0 left-0 w-full bg-orange-100 text-orange-700 text-xs font-bold py-1.5 text-center uppercase tracking-widest transition-all">Mode Edit Data</div>
-                        <h2 class="text-lg font-bold mb-5 flex items-center gap-2 mt-2">
+                    <div class="flex justify-between items-center mb-5 mt-2">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
                             <span class="w-2 h-6 rounded-full transition-colors" :class="isEditing ? 'bg-orange-500' : 'bg-blue-500'"></span> 
                             {{ isEditing ? 'Edit Transaksi' : 'Catat Transaksi' }}
                         </h2>
+                        <button type="button" @click="mulaiSuara" class="bg-indigo-100 text-indigo-600 p-2 rounded-full hover:bg-indigo-200 hover:scale-110 transition-all shadow-sm group" title="Perintah Suara">
+                            <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        </button>
+                    </div>
                         <form @submit.prevent="simpanData" class="space-y-4">
                             <div class="flex gap-1.5 p-1 bg-slate-100 rounded-2xl relative">
                                 <button type="button" @click="form.jenis = 'Pengeluaran'" :class="form.jenis === 'Pengeluaran' ? 'bg-white shadow-md text-rose-600 scale-[1.02]' : 'text-slate-500 hover:bg-slate-200'" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase transition-all">Keluar</button>
@@ -542,6 +547,65 @@ createApp({
             kategoriDropdown.value = 'Makan';
             metodeDropdown.value = 'Cash';
             isEditing.value = false; editId.value = null; oldDataRef.value = null; 
+        };
+
+        const mulaiSuara = () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return showNotif("Browser Anda tidak mendukung perintah suara.", "error");
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'id-ID';
+            recognition.start();
+
+            showNotif("Silakan bicara... (Misal: 'Pengeluaran lima puluh ribu untuk makan via cash')", "success");
+
+            recognition.onresult = (event) => {
+                const teks = event.results[0][0].transcript.toLowerCase();
+                console.log("Suara terdeteksi:", teks);
+
+                // 1. Deteksi Jenis
+                if (teks.includes('masuk') || teks.includes('pemasukan') || teks.includes('gaji')) form.value.jenis = 'Pemasukan';
+                else if (teks.includes('tabung') || teks.includes('simpan')) form.value.jenis = 'Tabungan';
+                else form.value.jenis = 'Pengeluaran';
+
+                // 2. Deteksi Angka (Menghapus kata ribu/juta lalu mengkonversi ke angka)
+                let angkaStr = teks.match(/\d+/g); 
+                let nominal = 0;
+                if (angkaStr) {
+                    nominal = parseInt(angkaStr.join(''));
+                    if (teks.includes('ribu')) nominal *= 1000;
+                    if (teks.includes('juta')) nominal *= 1000000;
+                    form.value.nominal = nominal;
+                }
+
+                // 3. Deteksi Metode Pembayaran
+                if (teks.includes('transfer') || teks.includes('bank')) metodeDropdown.value = 'Transfer Bank';
+                else if (teks.includes('wallet') || teks.includes('ovo') || teks.includes('dana') || teks.includes('gopay')) metodeDropdown.value = 'E-Wallet';
+                else if (teks.includes('kredivo')) metodeDropdown.value = 'Kredit Kredivo';
+                else if (teks.includes('spaylater') || teks.includes('shopee')) metodeDropdown.value = 'Kredit SPaylater';
+                else metodeDropdown.value = 'Cash';
+
+                // 4. Deteksi Kategori
+                const listKat = listKategoriAktif.value.map(k => k.toLowerCase());
+                let kategoriKetemu = false;
+                for (let k of listKat) {
+                    if (teks.includes(k)) {
+                        kategoriDropdown.value = listKategoriAktif.value[listKat.indexOf(k)];
+                        kategoriKetemu = true;
+                        break;
+                    }
+                }
+                
+                if (!kategoriKetemu && form.value.jenis !== 'Tabungan') {
+                    kategoriDropdown.value = 'Lainnya';
+                    form.value.kategori = teks; // Teks sisa dimasukkan ke input manual
+                }
+
+                form.value.keterangan = "Via Voice Command";
+                showNotif("Suara diproses: " + teks, "success");
+            };
+
+            recognition.onerror = () => { showNotif("Suara tidak terdengar jelas.", "error"); };
         };
 
         const filteredData = computed(() => {
@@ -1003,7 +1067,7 @@ createApp({
             }
         };
 
-        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif, metodeDropdown };
+        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif, metodeDropdown, mulaiSuara };
     }
 }).mount('#app');
 </script>
