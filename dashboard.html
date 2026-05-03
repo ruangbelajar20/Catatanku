@@ -407,6 +407,70 @@
 
     </transition>
 
+    <!-- MODAL KONFIRMASI VOICE NOTE -->
+    <transition name="modal">
+        <div v-if="modalVoiceConfirm.isOpen" class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <!-- Latar belakang gelap (Backdrop) -->
+            <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" @click="batalVoiceSimpan"></div>
+            
+            <!-- Kartu Modal Utama -->
+            <div class="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden transform transition-all scale-100">
+                
+                <!-- Header dengan Gradasi Modern -->
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-6 text-center relative overflow-hidden">
+                    <div class="absolute top-[-20px] right-[-20px] opacity-20"><svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-md shadow-inner relative z-10 border border-white/30">
+                        <span class="text-3xl drop-shadow-md">🎙️</span>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-white mb-1 relative z-10">Konfirmasi Suara</h2>
+                    <p class="text-indigo-100 text-xs font-medium relative z-10">Sistem berhasil memproses ucapan Anda.</p>
+                </div>
+                
+                <!-- Detail Rincian -->
+                <div class="p-6 bg-white">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3 mb-4 shadow-sm">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Jenis</span>
+                            <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-sm" :class="modalVoiceConfirm.data.jenis === 'Pemasukan' || modalVoiceConfirm.data.jenis === 'Tabungan' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200'">
+                                {{ modalVoiceConfirm.data.jenis }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Nominal</span>
+                            <span class="text-xl font-black text-slate-800 tracking-tight">Rp {{ formatRupiah(modalVoiceConfirm.data.nominal) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Kategori</span>
+                            <span class="text-sm font-bold text-slate-700">{{ modalVoiceConfirm.kategoriDisplay }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Metode</span>
+                            <span class="text-sm font-bold text-slate-700">{{ modalVoiceConfirm.metode }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Kutipan Ucapan -->
+                    <div class="bg-blue-50/50 border border-blue-100 p-3 rounded-xl flex gap-3 items-start">
+                        <span class="text-blue-400 text-lg">❝</span>
+                        <div>
+                            <p class="text-[9px] text-blue-500 font-extrabold uppercase tracking-widest mb-0.5">Teks Terdeteksi</p>
+                            <p class="text-xs text-slate-600 italic font-medium leading-relaxed">{{ modalVoiceConfirm.originalText }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi Bawah -->
+                <div class="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
+                    <button @click="batalVoiceSimpan" class="w-1/3 bg-white text-slate-600 border border-slate-200 font-bold py-3.5 rounded-xl hover:bg-slate-100 hover:text-slate-800 transition-colors shadow-sm text-xs uppercase tracking-wide">Edit Manual</button>
+                    <button @click="konfirmasiVoiceSimpan" :disabled="isLoading" class="w-2/3 bg-indigo-600 text-white font-extrabold py-3.5 rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm uppercase tracking-wide">
+                        <span v-if="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                        {{ isLoading ? 'Menyimpan...' : 'Simpan Langsung' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
     <!-- MODAL PEMBAYARAN PARSIAL -->
     <transition name="modal">
         <div v-if="modalBayar.isOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -530,7 +594,17 @@ createApp({
 
         const modal = ref({ isOpen: false, type: '', title: '', jenis: '', data: [], total: 0 });
         const modalBayar = ref({ isOpen: false, data: null, nominalInput: '' });
+        const modalVoiceConfirm = ref({ isOpen: false, data: null, metode: '', kategoriDisplay: '', originalText: '' });
 
+        const konfirmasiVoiceSimpan = async () => {
+            modalVoiceConfirm.value.isOpen = false;
+            await simpanData();
+        };
+        
+        const batalVoiceSimpan = () => {
+            modalVoiceConfirm.value.isOpen = false;
+            showNotif("Mode auto-simpan dibatalkan. Silakan edit form manual.", "success");
+        };
         const persentaseBatasAman = ref(localStorage.getItem('financeFlow_batasAman') || 30);
         const simulasiGaji = ref(5000000); 
         const targetTabungan = ref(0); 
@@ -620,15 +694,15 @@ createApp({
                                   `(Kalimat asli: "${teks}")`;
                 
                 // Memunculkan kotak dialog browser (Ok / Cancel)
-                setTimeout(async () => {
-                    if (confirm(ringkasan)) {
-                        // Jika diklik "OK", jalankan fungsi simpan data ke server
-                        await simpanData(); 
-                    } else {
-                        // Jika di-Cancel, form terisi tapi tidak tersimpan ke server
-                        showNotif("Penyimpanan otomatis dibatalkan. Silakan edit form secara manual.", "success");
-                    }
-                }, 300); // Jeda sedikit agar form di latar belakang ter-update secara visual
+                setTimeout(() => {
+                    modalVoiceConfirm.value = {
+                        isOpen: true,
+                        data: { ...form.value }, // Mengkloning data saat ini
+                        metode: metodeDropdown.value,
+                        kategoriDisplay: form.value.kategori || kategoriDropdown.value,
+                        originalText: teks
+                    };
+                }, 300);
             };
 
             recognition.onerror = (event) => { 
@@ -1099,7 +1173,9 @@ createApp({
             }
         };
 
-        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif, metodeDropdown, mulaiSuara };
+        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif, metodeDropdown, modalVoiceConfirm,
+    konfirmasiVoiceSimpan,
+    batalVoiceSimpan, mulaiSuara };
     }
 }).mount('#app');
 </script>
