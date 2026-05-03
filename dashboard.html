@@ -653,8 +653,7 @@ createApp({
             recognition.continuous = false; 
             recognition.interimResults = false;
 
-            
-           recognition.start();
+            recognition.start();
             showNotif("Mendengarkan...", "Sebutkan nominal, tujuan, dan waktu.", "success");
 
             recognition.onresult = async (event) => {
@@ -668,7 +667,7 @@ createApp({
                         body: JSON.stringify({ 
                             action: 'parse_voice', 
                             text: teks,
-                            currentDate: getCurrentDateTimeLocal(), // <--- KIRIM TANGGAL SEKARANG
+                            currentDate: getCurrentDateTimeLocal(),
                             token: localStorage.getItem('ff_token')
                         })
                     });
@@ -678,18 +677,42 @@ createApp({
                     if (result.status === 'success') {
                         const aiData = result.data;
                         
+                        // 1. Mengisi Jenis & Nominal
                         form.value.jenis = aiData.jenis || 'Pengeluaran';
                         form.value.nominal = aiData.nominal || 0;
                         form.value.keterangan = "Voice: " + teks;
                         
-                        // --- MENERAPKAN TANGGAL DARI AI ---
+                        // 2. Menerapkan Tanggal
                         if(aiData.tanggal) {
                             form.value.tanggal = aiData.tanggal;
                         }
 
-                        // ... (sisa logika metode dan kategori tetap sama seperti sebelumnya) ...
+                        // 3. Mengisi Metode Pembayaran (Ini yang sebelumnya terhapus!)
+                        const metList = ['Cash', 'Transfer Bank', 'E-Wallet', 'Kredit Kredivo', 'Kredit SPaylater'];
+                        if (metList.includes(aiData.metode)) {
+                            metodeDropdown.value = aiData.metode;
+                        } else {
+                            metodeDropdown.value = 'Lainnya';
+                            form.value.metodePembayaran = aiData.metode || 'Cash';
+                        }
+
+                        // 4. Mengisi Kategori (Ini juga sebelumnya terhapus!)
+                        if(form.value.jenis === 'Tabungan') {
+                            kategoriDropdown.value = 'Lainnya'; 
+                            form.value.kategori = 'Tabungan';
+                        } else {
+                            const katList = form.value.jenis === 'Pemasukan' ? ['Pemasukan Utama', 'Pemasukan Sampingan'] : ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Cicilan Rumah', 'Cicilan Kendaraan'];
+                            
+                            if (katList.includes(aiData.kategori)) {
+                                kategoriDropdown.value = aiData.kategori;
+                                form.value.kategori = ''; 
+                            } else {
+                                kategoriDropdown.value = 'Lainnya';
+                                form.value.kategori = aiData.kategori || 'Lainnya';
+                            }
+                        }
                         
-                        // Menampilkan modal konfirmasi
+                        // 5. Menampilkan modal konfirmasi
                         modalVoiceConfirm.value = {
                             isOpen: true,
                             data: { ...form.value },
@@ -708,7 +731,6 @@ createApp({
                 }
             };
             
-            // Error handling di suara
             recognition.onerror = (event) => { 
                 if (event.error === 'no-speech') showNotif("Senyap", "Suara tidak terdengar.", "error");
                 else showNotif("Mikrofon Error", event.error, "error");
