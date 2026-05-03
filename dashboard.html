@@ -475,7 +475,7 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        const API_URL = "https://script.google.com/macros/s/AKfycbzzKukwCmAdQYiZCCXW51d0mfGnM4fKkLmyfwnYWbZPm33nou0WOiX_lapc7YVQUVhEfQ/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbzkcBreCOkkBJCMBqb7cdy9LPe4bb0H7mkWY7D8CGNYKn34n2MPoCRQP4wAZgh9jjRRTw/exec"; 
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; 
         
         onMounted(() => {
@@ -823,55 +823,58 @@ createApp({
                         datasets: [{ 
                             data: hd ? [inc, exp] : [1, 1], 
                             backgroundColor: hd ? ['#10b981', '#f43f5e'] : ['#f1f5f9', '#f1f5f9'], 
-                            borderWidth: 4, 
-                            borderColor: '#ffffff',
-                            hoverOffset: 12,
-                            borderRadius: 20 // Ujung melengkung modern
+                            borderWidth: 4, borderColor: '#ffffff', hoverOffset: 12, borderRadius: 20
                         }] 
                     }, 
                     options: { 
                         responsive: true, maintainAspectRatio: false, cutout: '75%',
-                        plugins: { 
-                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
-                            datalabels: { display: false }, // MENGHILANGKAN ANGKA BERTUMPUK
-                            tooltip: modernTooltip
-                        },
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }, datalabels: { display: false }, tooltip: modernTooltip },
                         animation: { animateScale: true, animateRotate: true }
                     } 
                 });
             }
+            
             const ctx2 = document.getElementById('dashboardPaymentDistChart');
             if(ctx2) {
                 if (chartDist) chartDist.destroy();
                 
-                // PERBAIKAN: Membaca semua metode secara dinamis
                 const labelsDist = Object.keys(paymentTotals.value);
                 const dataDist = Object.values(paymentTotals.value);
                 const hd = dataDist.some(v => v > 0);
-            
-                // Menggunakan palet warna yang cukup banyak untuk jaga-jaga ada banyak metode
-                const colorPalette = ['#10b981', '#3b82f6', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#64748b'];
-            
+
+                // --- KAMUS WARNA DINAMIS ---
+                const colorMap = {
+                    'Cash': '#10b981',             // Hijau
+                    'Kredit Kredivo': '#3b82f6',   // Biru
+                    'Kredit SPaylater': '#ef4444', // Merah
+                    'E-Wallet': '#f59e0b',         // Kuning (Amber)
+                    'Transfer Bank': '#8b5cf6'     // Ungu
+                };
+                
+                // Warna cadangan jika user mengetik metode "Lainnya" yang tidak ada di daftar atas
+                const fallbackColors = ['#14b8a6', '#ec4899', '#64748b', '#06b6d4']; 
+                let fallbackIndex = 0;
+
+                const dynamicColors = labelsDist.map(label => {
+                    if (colorMap[label]) return colorMap[label];
+                    const color = fallbackColors[fallbackIndex % fallbackColors.length];
+                    fallbackIndex++;
+                    return color;
+                });
+
                 chartDist = new Chart(ctx2.getContext('2d'), { 
                     type: 'doughnut', 
                     data: { 
                         labels: hd ? labelsDist : ['Belum Ada Data'], 
                         datasets: [{ 
                             data: hd ? dataDist : [1], 
-                            backgroundColor: hd ? colorPalette.slice(0, labelsDist.length) : ['#f1f5f9'], 
-                            borderWidth: 4, 
-                            borderColor: '#ffffff',
-                            hoverOffset: 12,
-                            borderRadius: 20
+                            backgroundColor: hd ? dynamicColors : ['#f1f5f9'], 
+                            borderWidth: 4, borderColor: '#ffffff', hoverOffset: 12, borderRadius: 20
                         }] 
                     }, 
                     options: { 
                         responsive: true, maintainAspectRatio: false, cutout: '75%',
-                        plugins: { 
-                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
-                            datalabels: { display: false }, 
-                            tooltip: modernTooltip
-                        },
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }, datalabels: { display: false }, tooltip: modernTooltip },
                         animation: { animateScale: true, animateRotate: true }
                     } 
                 });
