@@ -843,14 +843,22 @@ createApp({
             const ctx2 = document.getElementById('dashboardPaymentDistChart');
             if(ctx2) {
                 if (chartDist) chartDist.destroy();
-                const d = [paymentTotals.value['Cash'] || 0, paymentTotals.value['Kredit Kredivo'] || 0, paymentTotals.value['Kredit SPaylater'] || 0]; const hd = d.some(v => v > 0);
+                
+                // PERBAIKAN: Membaca semua metode secara dinamis
+                const labelsDist = Object.keys(paymentTotals.value);
+                const dataDist = Object.values(paymentTotals.value);
+                const hd = dataDist.some(v => v > 0);
+            
+                // Menggunakan palet warna yang cukup banyak untuk jaga-jaga ada banyak metode
+                const colorPalette = ['#10b981', '#3b82f6', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#64748b'];
+            
                 chartDist = new Chart(ctx2.getContext('2d'), { 
                     type: 'doughnut', 
                     data: { 
-                        labels: ['Cash', 'Kredivo', 'SPaylater'], 
+                        labels: hd ? labelsDist : ['Belum Ada Data'], 
                         datasets: [{ 
-                            data: hd ? d : [1, 0, 0], 
-                            backgroundColor: ['#10b981', '#3b82f6', '#f97316'], 
+                            data: hd ? dataDist : [1], 
+                            backgroundColor: hd ? colorPalette.slice(0, labelsDist.length) : ['#f1f5f9'], 
                             borderWidth: 4, 
                             borderColor: '#ffffff',
                             hoverOffset: 12,
@@ -861,7 +869,7 @@ createApp({
                         responsive: true, maintainAspectRatio: false, cutout: '75%',
                         plugins: { 
                             legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
-                            datalabels: { display: false }, // MENGHILANGKAN ANGKA BERTUMPUK
+                            datalabels: { display: false }, 
                             tooltip: modernTooltip
                         },
                         animation: { animateScale: true, animateRotate: true }
