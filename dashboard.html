@@ -10,34 +10,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        #ai-response-container {
-            line-height: 1.5; /* Jarak antar baris teks yang ideal */
-            color: #334155;
-          }
-          
-          #ai-response-container h3 {
-            color: #1e40af;
-            margin-top: 16px;
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 4px;
-          }
-        
-          #ai-response-container p {
-            margin-bottom: 12px;
-          }
-        
-          #ai-response-container ul {
-            margin-bottom: 12px;
-            padding-left: 20px;
-            list-style-type: disc;
-          }
-        
-          #ai-response-container li {
-            margin-bottom: 6px;
-          }
+        #ai-response-container { line-height: 1.5; color: #334155; }
+        #ai-response-container h3 { color: #1e40af; margin-top: 16px; margin-bottom: 8px; font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        #ai-response-container p { margin-bottom: 12px; }
+        #ai-response-container ul { margin-bottom: 12px; padding-left: 20px; list-style-type: disc; }
+        #ai-response-container li { margin-bottom: 6px; }
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         [v-cloak] { display: none; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -154,7 +131,8 @@
                                 </div>
                                 <div v-if="form.jenis !== 'Tabungan'">
                                     <label class="text-[10px] uppercase font-bold text-slate-400 ml-2 tracking-widest">Metode Pembayaran</label>
-                                    <select v-model="metodeDropdown" @change="if(metodeDropdown !== 'Lainnya') form.metodePembayaran = metodeDropdown" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white mb-2">
+                                    <!-- PERBAIKAN BUG IF TERNARY DI SINI -->
+                                    <select v-model="metodeDropdown" @change="metodeDropdown !== 'Lainnya' ? form.metodePembayaran = metodeDropdown : null" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-semibold cursor-pointer focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white mb-2">
                                         <option value="Cash">💵 Cash</option>
                                         <option value="Transfer Bank">🏦 Transfer Bank</option>
                                         <option value="E-Wallet">📱 E-Wallet (OVO/Dana/dll)</option>
@@ -163,7 +141,6 @@
                                         <option value="Lainnya">Lainnya... (Ketik Manual)</option>
                                     </select>
                                     
-                                    <!-- Input Form akan muncul khusus jika 'Lainnya' dipilih -->
                                     <input v-if="metodeDropdown === 'Lainnya'" type="text" v-model="form.metodePembayaran" required placeholder="Sebutkan metode pembayaran..." class="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-xs font-semibold focus:ring-2 focus:ring-blue-500 transition-all hover:bg-white animate-fade-in">
                                 </div>
                                 <div class="col-span-2">
@@ -305,7 +282,6 @@
                     <div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Tabungan</p>
                         <h3 class="text-xl font-extrabold text-slate-800">Rp {{ formatRupiah(targetTabungan) }}</h3>
-                        <!-- Penambahan Informasi Sisa Kurang -->
                         <p v-if="targetTabungan > totalTabungan" class="text-[10px] font-bold text-rose-500 mt-1">
                             Sisa Kurang: Rp {{ formatRupiah(targetTabungan - totalTabungan) }}
                         </p>
@@ -506,7 +482,7 @@ createApp({
             if(!localStorage.getItem('ff_token')) { window.location.href = 'index.html'; } 
             else { 
                 fetchData(); 
-                fetchSettings(); // <--- Ambil target tabungan dari Cloud saat mulai
+                fetchSettings(); 
             }
         });
 
@@ -532,11 +508,9 @@ createApp({
         const kategoriDropdown = ref('Makan');
         const listKategoriAktif = computed(() => {
             if (form.value.jenis === 'Pemasukan') return ['Pemasukan Utama', 'Pemasukan Sampingan', 'Lainnya'];
-            // Kategori pengeluaran ditambah Cicilan Rumah & Kendaraan
             return ['Makan', 'Minum', 'Transportasi', 'Listrik', 'Air', 'Cicilan Rumah', 'Cicilan Kendaraan', 'Lainnya'];
         });
         
-        // Tambahkan variabel baru ini tepat di bawah listKategoriAktif
         const metodeDropdown = ref('Cash');
 
         const form = ref({ tanggal: getCurrentDateTimeLocal(), jenis: 'Pengeluaran', kategori: '', keterangan: '', metodePembayaran: 'Cash', nominal: '' });
@@ -554,7 +528,7 @@ createApp({
 
         const persentaseBatasAman = ref(localStorage.getItem('financeFlow_batasAman') || 30);
         const simulasiGaji = ref(5000000); 
-        const targetTabungan = ref(0); // <--- Sekarang default 0, diisi oleh fetchSettings
+        const targetTabungan = ref(0); 
 
         // State AI
         const isAnalyzingAI = ref(false);
@@ -615,7 +589,7 @@ createApp({
                 try {
                     const res = await fetch(API_URL, { 
                         method: 'POST', 
-                        body: JSON.stringify({ action: 'update_settings', key: 'target_tabungan', value: Number(input) }) 
+                        body: JSON.stringify({ action: 'update_settings', key: 'target_tabungan', value: Number(input), token: localStorage.getItem('ff_token') }) 
                     });
                     const result = await res.json();
                     if(result.status === 'success') {
@@ -726,7 +700,7 @@ createApp({
             }
 
             isLoading.value = true;
-            const payload = isEditing.value ? { action: 'update', id: editId.value, oldData: oldDataRef.value, data: form.value } : { action: 'create', data: form.value };
+            const payload = isEditing.value ? { action: 'update', id: editId.value, oldData: oldDataRef.value, data: form.value, token: localStorage.getItem('ff_token') } : { action: 'create', data: form.value, token: localStorage.getItem('ff_token') };
             try { 
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); 
                 const result = await res.json();
@@ -746,7 +720,7 @@ createApp({
             if(nominal <= 0) return showNotif("Nominal tidak valid!", "error");
             isLoading.value = true;
             try { 
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'pay', id: modalBayar.value.data.id, nominalBayar: nominal }) }); 
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'pay', id: modalBayar.value.data.id, nominalBayar: nominal, token: localStorage.getItem('ff_token') }) }); 
                 const result = await res.json();
                 if(result.status === 'success'){ showNotif(`Lunas!`, 'success'); modalBayar.value.isOpen = false; await fetchData(); } 
                 else { showNotif("Error", "error"); }
@@ -1018,7 +992,7 @@ createApp({
             }
         };
 
-        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif };
+        return { form, isLoading, filterWaktu, periods, activeTab, modal, modalBayar, isEditing, notif, showNotif, logout, totalPemasukanFilter, totalPengeluaranFilter, categoryTotalsPemasukan, categoryTotalsPengeluaran, paymentTotals, listCicilan, totalHutangAktif, hutangKredivoTotal, hutangKredivoSisa, hutangSpaylaterTotal, hutangSpaylaterSisa, simulasiGaji, batasAmanKredit, sisaKuotaKredit, persentaseBatasAman, listTabungan, totalTabungan, targetTabungan, setTargetTabungan, statusAnalisis, isAnalyzingAI, aiAnalysisResult, analisisDenganAI, simpanData, bukaModalBayar, prosesBayar, formatRupiah, formatTanggalView, setFilter, changeTab, openModal, closeModal, siapkanEdit, batalEdit, hapusData, editBatasAman, bukaDatabase, kategoriDropdown, listKategoriAktif, metodeDropdown };
     }
 }).mount('#app');
 </script>
