@@ -33,17 +33,17 @@
         .modal-enter-from, .modal-leave-to { opacity: 0; }
         
         .toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .toast-enter-from { opacity: 0; transform: translate(100%, 0) scale(0.9); }
-        .toast-leave-to { opacity: 0; transform: translate(100%, 0) scale(0.9); }
+        /* Ubah transisi animasi agar pas untuk posisi tengah */
+        .toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12 relative overflow-x-hidden">
 
 <div id="app" v-cloak class="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6">
-    <!-- NOTIFIKASI MODERN (TOAST) -->
+    <!-- NOTIFIKASI MODERN (TOAST) DI TENGAH -->
     <transition name="toast">
         <div v-if="notif.show" 
-             class="fixed top-8 right-8 z-[9999] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col min-w-[320px] max-w-sm transform transition-all"
+             class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999] bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 overflow-hidden flex flex-col min-w-[320px] max-w-sm transition-all"
              :class="notif.type === 'success' ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-rose-500'">
             <div class="p-4 flex items-start gap-4">
                 <div :class="notif.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'" class="p-2.5 rounded-full mt-0.5">
@@ -558,7 +558,7 @@ const getCurrentDateTimeLocal = () => {
 
 createApp({
     setup() {
-        const API_URL = "https://script.google.com/macros/s/AKfycbz7AXlRxqKSTKq_-LG5kVpsG34oo0lWovCMKz4dHtwvnNTVuAKNSqoaX4Ol9IjQQkvRBQ/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbyga9lZoaLqzl-iZsWk23KQ2VatprAQqJ6kbJiOudPxVkTEnnI4pVl0FxfIs6AELoxk/exec"; 
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1x9yKXK8e6-gHKgf0ZwTbDhZX-IZKpvT_OuHU2XF1T6g/edit?usp=sharing"; 
         
         onMounted(() => {
